@@ -1,0 +1,114 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sucre_turistico
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  destinos-service:
+    build: ./services/destinos-service
+    environment:
+      - PORT=4001
+      - DB_HOST=mysql
+    ports:
+      - "4001:4001"
+    depends_on:
+      - mysql
+
+  alojamiento-service:
+    build: ./services/alojamiento-service
+    environment:
+      - PORT=4002
+      - DB_HOST=mysql
+    ports:
+      - "4002:4002"
+    depends_on:
+      - mysql
+
+  gastronomia-service:
+    build: ./services/gastronomia-service
+    environment:
+      - PORT=4003
+      - DB_HOST=mysql
+    ports:
+      - "4003:4003"
+    depends_on:
+      - mysql
+
+  experiencias-service:
+    build: ./services/experiencias-service
+    environment:
+      - PORT=4004
+      - DB_HOST=mysql
+    ports:
+      - "4004:4004"
+    depends_on:
+      - mysql
+
+  eventos-service:
+    build: ./services/eventos-service
+    environment:
+      - PORT=4005
+      - DB_HOST=mysql
+    ports:
+      - "4005:4005"
+    depends_on:
+      - mysql
+
+  buscador-service:
+    build: ./services/buscador-service
+    environment:
+      - PORT=4006
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+    ports:
+      - "4006:4006"
+    depends_on:
+      - elasticsearch
+
+  api-gateway:
+    build: ./api-gateway
+    environment:
+      - PORT=4000
+      - DESTINOS_URL=http://destinos-service:4001
+      - ALOJAMIENTO_URL=http://alojamiento-service:4002
+      - GASTRONOMIA_URL=http://gastronomia-service:4003
+      - EXPERIENCIAS_URL=http://experiencias-service:4004
+      - EVENTOS_URL=http://eventos-service:4005
+      - BUSCADOR_URL=http://buscador-service:4006
+    ports:
+      - "4000:4000"
+    depends_on:
+      - destinos-service
+      - alojamiento-service
+      - gastronomia-service
+      - experiencias-service
+      - eventos-service
+      - buscador-service
+
+  frontend:
+    build: ./frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+
+volumes:
+  mysql_data:
+  es_data:

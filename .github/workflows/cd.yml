@@ -1,0 +1,43 @@
+name: CD
+
+# Se dispara solo cuando algo llega a main (después de mergear develop -> main).
+# Requiere que primero configuren las cuentas de despliegue y agreguen los secrets
+# en GitHub: Settings -> Secrets and variables -> Actions.
+#
+# Secrets necesarios (agregarlos cuando tengan las cuentas creadas):
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID   -> despliegue del frontend
+#   RENDER_DEPLOY_HOOK_URL_<SERVICIO>                -> un deploy hook por microservicio en Render
+#
+# Mientras no existan los secrets, estos jobs quedan sin ejecutar contenido real
+# (ver los pasos "echo" de ejemplo) para no romper el pipeline.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy a Vercel
+        run: |
+          echo "TODO: reemplazar por 'vercel deploy --prod --token=\$VERCEL_TOKEN' cuando exista el proyecto en Vercel."
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - destinos-service
+          - alojamiento-service
+          - gastronomia-service
+          - experiencias-service
+          - eventos-service
+          - buscador-service
+    steps:
+      - uses: actions/checkout@v4
+      - name: Disparar deploy hook de Render/Railway
+        run: |
+          echo "TODO: 'curl -X POST \$RENDER_DEPLOY_HOOK_URL_${{ matrix.service }}' cuando exista el servicio en Render/Railway."

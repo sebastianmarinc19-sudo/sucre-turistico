@@ -1,0 +1,14 @@
+{
+  "name": "sucre-turistico",
+  "private": true,
+  "workspaces": [
+    "api-gateway",
+    "services/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup-env.js",
+    "up": "docker compose up --build",
+    "down": "docker compose down",
+    "logs": "docker compose logs -f"
+  }
+}
