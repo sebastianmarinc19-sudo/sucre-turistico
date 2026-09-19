@@ -1,14 +1,13 @@
 # Frontend — Sucre Turístico
 
-Aún no está inicializado el proyecto React. Cuando empiecen el Sprint 3, la persona a cargo del frontend debe correr esto **dentro de esta carpeta**:
+App React inicializada con [Vite](https://vitejs.dev/).
+
+## Desarrollo local
 
 ```bash
-npm create vite@latest . -- --template react
 npm install
-npm install react-router-dom axios bootstrap recharts
+npm run dev
 ```
-
-(Vite en vez de create-react-app: arranca más rápido y es el estándar actual para React con JavaScript.)
 
 ## Variables de entorno
 
@@ -30,4 +29,8 @@ frontend/src/
 └── App.jsx          # rutas con React Router
 ```
 
-Después de inicializar el proyecto, agregar aquí mismo un `Dockerfile` (pueden pedirme que lo genere cuando ya exista el `package.json` real, para que coincida con el build tool elegido).
+## Dependencias pendientes de instalar cuando se empiece a maquetar
+
+```bash
+npm install react-router-dom axios bootstrap recharts
+```
