@@ -16,12 +16,19 @@ const routes = {
   '/api/buscador': process.env.BUSCADOR_URL || 'http://localhost:4006',
 };
 
+// Ojo: se monta con `app.use(middleware)` + `pathFilter`, NO con `app.use(ruta, middleware)`.
+// Express recorta la ruta de montaje, así que con la segunda forma el microservicio
+// recibía "/" en vez de "/api/destinos" y respondía 404 a todo el CRUD.
 Object.entries(routes).forEach(([path, target]) => {
-  app.use(path, createProxyMiddleware({ target, changeOrigin: true }));
+  app.use(createProxyMiddleware({ pathFilter: path, target, changeOrigin: true }));
 });
 
 app.get('/health', (req, res) => {
   res.json({ service: 'api-gateway', status: 'ok', routes: Object.keys(routes) });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Ruta no registrada en el API Gateway', ruta: req.originalUrl, rutasDisponibles: Object.keys(routes) });
 });
 
 app.listen(PORT, () => {
