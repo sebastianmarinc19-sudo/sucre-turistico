@@ -48,7 +48,7 @@ function crearRutasAuth(repo) {
 
       return res.json({
         token: firmar(usuario),
-        usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+        usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email },
       });
     } catch (err) {
       return res.status(500).json({ error: mensajeDeError(err) });
@@ -56,8 +56,9 @@ function crearRutasAuth(repo) {
   });
 
   // POST /api/auth/registro
-  // Si todavia no hay ningun usuario, la primera cuenta se crea sin token y queda
-  // como admin (asi arranca el sistema). A partir de ahi, solo un admin crea cuentas.
+  // Si todavia no hay ningun usuario, la primera cuenta se crea sin token
+  // (asi arranca el sistema). A partir de ahi, solo una cuenta existente
+  // puede crear otras.
   router.post('/registro', async (req, res, next) => {
     try {
       const total = await repo.contar();
@@ -80,7 +81,7 @@ function crearRutasAuth(repo) {
       }
 
       const passwordHash = await bcrypt.hash(password, RONDAS_BCRYPT);
-      const creado = await repo.crear({ nombre, email, passwordHash, rol: 'admin' });
+      const creado = await repo.crear({ nombre, email, passwordHash });
       return res.status(201).json(creado);
     } catch (err) {
       return res.status(500).json({ error: mensajeDeError(err) });
@@ -89,7 +90,7 @@ function crearRutasAuth(repo) {
 
   // GET /api/auth/yo -> datos del usuario del token (util para el front)
   router.get('/yo', requiereAdmin, (req, res) => {
-    res.json({ id: req.usuario.sub, nombre: req.usuario.nombre, email: req.usuario.email, rol: req.usuario.rol });
+    res.json({ id: req.usuario.sub, nombre: req.usuario.nombre, email: req.usuario.email });
   });
 
   return router;

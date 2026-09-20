@@ -71,8 +71,8 @@ test('reenvia rutas con parametro, como /api/destinos/:id', async () => {
 // El gateway NO usa express.json() a proposito: parsear el body aqui
 // romperia el reenvio de los POST. Esta prueba lo deja fijado.
 test('reenvia el body de un POST intacto', async () => {
-  // Las escrituras exigen admin (ver auth.test.js), por eso va el token.
-  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co', rol: 'admin' });
+  // Las escrituras exigen una cuenta (ver auth.test.js), por eso va el token.
+  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co' });
   const res = await fetch(`${gatewayUrl}/api/destinos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
