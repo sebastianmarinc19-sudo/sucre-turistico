@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const { crearRutasAuth } = require('./auth/routes');
+const { protegerEscrituras } = require('./auth/middleware');
+const { verificarConfiguracion } = require('./auth/tokens');
 
 // Las URLs de los microservicios salen del entorno (docker-compose las inyecta).
 // Los valores por defecto sirven para correr el gateway suelto con `npm run dev`.
@@ -15,9 +18,19 @@ function buildRoutes(env = process.env) {
   };
 }
 
-function createApp(routes = buildRoutes()) {
+// `usuariosRepo` se puede inyectar para poder probar la autenticacion sin base de datos.
+function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
+  verificarConfiguracion();
+
   const app = express();
   app.use(cors());
+
+  const repo = usuariosRepo || require('./auth/usuarios-repo');
+  app.use('/api/auth', crearRutasAuth(repo));
+
+  // Los GET quedan publicos (el turista consulta sin cuenta); crear, editar y
+  // borrar exigen un token de administrador. Va ANTES de los proxies.
+  app.use(protegerEscrituras(Object.keys(routes)));
 
   // Ojo: se monta con `app.use(middleware)` + `pathFilter`, NO con `app.use(ruta, middleware)`.
   // Express recorta la ruta de montaje, asi que con la segunda forma el microservicio
@@ -34,7 +47,7 @@ function createApp(routes = buildRoutes()) {
     res.status(404).json({
       error: 'Ruta no registrada en el API Gateway',
       ruta: req.originalUrl,
-      rutasDisponibles: Object.keys(routes),
+      rutasDisponibles: [...Object.keys(routes), '/api/auth'],
     });
   });
 

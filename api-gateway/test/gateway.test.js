@@ -1,7 +1,11 @@
+process.env.JWT_SECRET = 'secreto-solo-para-pruebas';
+
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
 const express = require('express');
 const { createApp } = require('../src/app');
+const { crearRepoEnMemoria } = require('../src/auth/repo-en-memoria');
+const { firmar } = require('../src/auth/tokens');
 
 // Microservicio de mentiras que responde igual que lo hara destinos-service:
 // devuelve la ruta que REALMENTE recibio, para poder afirmar que el gateway
@@ -26,7 +30,10 @@ before(async () => {
   upstream = await escuchar(stub);
 
   const target = `http://127.0.0.1:${upstream.address().port}`;
-  gateway = await escuchar(createApp({ '/api/destinos': target }));
+  gateway = await escuchar(createApp({
+    routes: { '/api/destinos': target },
+    usuariosRepo: crearRepoEnMemoria(),
+  }));
   gatewayUrl = `http://127.0.0.1:${gateway.address().port}`;
 });
 
@@ -64,9 +71,11 @@ test('reenvia rutas con parametro, como /api/destinos/:id', async () => {
 // El gateway NO usa express.json() a proposito: parsear el body aqui
 // romperia el reenvio de los POST. Esta prueba lo deja fijado.
 test('reenvia el body de un POST intacto', async () => {
+  // Las escrituras exigen admin (ver auth.test.js), por eso va el token.
+  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co', rol: 'admin' });
   const res = await fetch(`${gatewayUrl}/api/destinos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ nombre: 'Playa Coveñas', municipio: 'Coveñas' }),
   });
   const body = await res.json();
