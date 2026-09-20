@@ -3,7 +3,7 @@ const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const { crearRutasAuth } = require('./auth/routes');
 const { protegerEscrituras } = require('./auth/middleware');
-const { verificarConfiguracion } = require('./auth/tokens');
+const { avisarSiFaltaConfiguracion } = require('./auth/tokens');
 
 // Las URLs de los microservicios salen del entorno (docker-compose las inyecta).
 // Los valores por defecto sirven para correr el gateway suelto con `npm run dev`.
@@ -20,7 +20,7 @@ function buildRoutes(env = process.env) {
 
 // `usuariosRepo` se puede inyectar para poder probar la autenticacion sin base de datos.
 function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
-  verificarConfiguracion();
+  avisarSiFaltaConfiguracion();
 
   const app = express();
   app.use(cors());
