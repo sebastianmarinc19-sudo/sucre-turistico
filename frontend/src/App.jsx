@@ -1,122 +1,62 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import Destinos from './pages/Destinos';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+// Marcador de posicion para las paginas que aun no existen.
+// Halit y Jaime las van reemplazando por paginas reales (ver SPRINT_PLAN.md).
+function EnConstruccion({ titulo }) {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <section>
+      <h2 className="h3">{titulo}</h2>
+      <div className="alert alert-light border mt-3">
+        Esta pagina todavia no esta implementada. Sigue el patron de{' '}
+        <code>src/pages/Destinos.jsx</code>.
+      </div>
+    </section>
+  );
 }
 
-export default App
+const ENLACES = [
+  { ruta: '/', texto: 'Destinos', fin: true },
+  { ruta: '/alojamiento', texto: 'Alojamiento' },
+  { ruta: '/gastronomia', texto: 'Gastronomia' },
+  { ruta: '/experiencias', texto: 'Experiencias' },
+  { ruta: '/eventos', texto: 'Eventos' },
+];
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav className="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+        <div className="container">
+          <span className="navbar-brand fw-semibold">Sucre Turistico</span>
+          <ul className="navbar-nav flex-row flex-wrap gap-3">
+            {ENLACES.map(({ ruta, texto, fin }) => (
+              <li className="nav-item" key={ruta}>
+                <NavLink
+                  to={ruta}
+                  end={fin}
+                  className={({ isActive }) => `nav-link p-0 ${isActive ? 'active fw-semibold' : ''}`}
+                >
+                  {texto}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+
+      <main className="container pb-5">
+        <Routes>
+          <Route path="/" element={<Destinos />} />
+          <Route path="/alojamiento" element={<EnConstruccion titulo="Alojamiento" />} />
+          <Route path="/gastronomia" element={<EnConstruccion titulo="Gastronomia" />} />
+          <Route path="/experiencias" element={<EnConstruccion titulo="Experiencias" />} />
+          <Route path="/eventos" element={<EnConstruccion titulo="Eventos" />} />
+          <Route path="*" element={<EnConstruccion titulo="Pagina no encontrada" />} />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
+}
+
+export default App;
