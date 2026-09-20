@@ -224,7 +224,81 @@ También puedes probar a través del Gateway (`http://localhost:4000/api/destino
 
 Si prefieres una interfaz visual en vez de `curl`, usa [Postman](https://www.postman.com/) o la extensión "Thunder Client" de VS Code.
 
-## Paso 6 — Subir tu trabajo
+## Paso 6 — Agregar una prueba automática
+
+Las pruebas manuales con `curl` sirven para ti hoy; una prueba automática sirve para todo el equipo siempre, y el CI la corre sola en cada Pull Request. Con dos pruebas ya tienes algo real que mostrar en la sustentación.
+
+Primero, al final de `services/destinos-service/src/index.js`, cambia el `app.listen(...)` para que el archivo se pueda importar sin arrancar el servidor:
+
+```js
+// Solo escucha si se ejecuta directamente (`npm start`), no al importarlo desde una prueba.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`destinos-service escuchando en el puerto ${PORT}`);
+  });
+}
+
+module.exports = app;
+```
+
+Agrega el script de pruebas en `services/destinos-service/package.json`:
+
+```json
+"scripts": {
+  "start": "node src/index.js",
+  "dev": "nodemon src/index.js",
+  "test": "node --test"
+}
+```
+
+Y crea `services/destinos-service/test/destinos.test.js`:
+
+```js
+const { test } = require('node:test');
+const assert = require('node:assert');
+const app = require('../src/index');
+
+// Levanta el servicio en un puerto libre (el 0 se lo pide al sistema operativo).
+function escuchar() {
+  return new Promise((resolve) => {
+    const server = app.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
+test('GET /health responde ok', async () => {
+  const server = await escuchar();
+  const res = await fetch(`http://127.0.0.1:${server.address().port}/health`);
+  const body = await res.json();
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(body.status, 'ok');
+  server.close();
+});
+
+test('POST sin los campos obligatorios responde 400', async () => {
+  const server = await escuchar();
+  const res = await fetch(`http://127.0.0.1:${server.address().port}/api/destinos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Le falta municipio y categoria' }),
+  });
+
+  assert.strictEqual(res.status, 400);
+  server.close();
+});
+```
+
+Córrelas con:
+
+```bash
+npm test --workspace=services/destinos-service
+```
+
+**Por qué estas dos y no un CRUD completo:** ninguna de las dos necesita base de datos. La validación del `POST` ocurre *antes* de llegar a MySQL, así que la prueba pasa sin conexión — y por eso el CI puede ejecutarla sin levantar una base de datos. Probar el `INSERT` real requiere una base de datos de pruebas; eso es un paso más avanzado que pueden dejar para después si sobra tiempo.
+
+Mira `api-gateway/test/gateway.test.js` como ejemplo ya funcionando en el repo.
+
+## Paso 7 — Subir tu trabajo
 
 ```bash
 git add .
@@ -257,6 +331,7 @@ Mismo patrón, cambiando nombres:
 3. Mismo `src/db.js` (copiar tal cual).
 4. Mismas 5 rutas (`GET /api/alojamientos`, `GET /api/alojamientos/:id`, `POST`, `PUT`, `DELETE`), cambiando `destinos` por `alojamientos` y los campos del `INSERT`/`UPDATE` según la tabla de arriba.
 5. Probar en el puerto `4002` en vez de `4001`.
+6. Mismas dos pruebas del Paso 6, en `services/alojamiento-service/test/alojamientos.test.js` (cambiando la ruta del `POST` y los campos obligatorios: `nombre`, `municipio`, `tipo`).
 
 ## Cuando ya esté listo para producción
 
