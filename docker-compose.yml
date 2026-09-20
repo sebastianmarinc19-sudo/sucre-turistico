@@ -8,6 +8,17 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # MySQL ejecuta los .sql de esta carpeta solo la primera vez que se crea
+      # el volumen. Para reaplicarlos: docker compose down -v && npm run up
+      - ./docs/sql:/docker-entrypoint-initdb.d:ro
+    # MySQL tarda 20-40s en aceptar conexiones; los servicios arrancan en 2s.
+    # Sin este healthcheck, las primeras peticiones fallan y parece un bug del codigo.
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -uroot -proot -e 'SELECT 1' sucre_turistico || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
@@ -19,56 +30,95 @@ services:
       - "9200:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
 
+  # Nota: los .env que genera `npm run setup` sirven para correr un servicio suelto
+  # con `npm run dev`. Dentro de los contenedores NO se leen, por eso las credenciales
+  # de MySQL se declaran aqui explicitamente.
   destinos-service:
     build: ./services/destinos-service
     environment:
       - PORT=4001
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4001:4001"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   alojamiento-service:
     build: ./services/alojamiento-service
     environment:
       - PORT=4002
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4002:4002"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   gastronomia-service:
     build: ./services/gastronomia-service
     environment:
       - PORT=4003
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4003:4003"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   experiencias-service:
     build: ./services/experiencias-service
     environment:
       - PORT=4004
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4004:4004"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   eventos-service:
     build: ./services/eventos-service
     environment:
       - PORT=4005
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4005:4005"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   buscador-service:
     build: ./services/buscador-service
@@ -78,7 +128,8 @@ services:
     ports:
       - "4006:4006"
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
 
   api-gateway:
     build: ./api-gateway
@@ -90,20 +141,39 @@ services:
       - EXPERIENCIAS_URL=http://experiencias-service:4004
       - EVENTOS_URL=http://eventos-service:4005
       - BUSCADOR_URL=http://buscador-service:4006
+      # Autenticacion del panel de admin. Este secreto es solo de desarrollo:
+      # en Render hay que definir uno distinto (ver docs/AUTENTICACION.md).
+      - JWT_SECRET=desarrollo-local-no-usar-en-produccion
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4000:4000"
     depends_on:
-      - destinos-service
-      - alojamiento-service
-      - gastronomia-service
-      - experiencias-service
-      - eventos-service
-      - buscador-service
+      mysql:
+        condition: service_healthy
+      destinos-service:
+        condition: service_started
+      alojamiento-service:
+        condition: service_started
+      gastronomia-service:
+        condition: service_started
+      experiencias-service:
+        condition: service_started
+      eventos-service:
+        condition: service_started
+      buscador-service:
+        condition: service_started
 
   frontend:
     build: ./frontend
+    # Vite solo expone al navegador las variables con prefijo VITE_.
+    # REACT_APP_* es de Create React App y aqui era letra muerta.
     environment:
-      - REACT_APP_API_URL=http://localhost:4000
+      - VITE_API_URL=http://localhost:4000
     ports:
       - "3000:3000"
     depends_on:
