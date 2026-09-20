@@ -17,6 +17,7 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 - [`docs/SPRINT_PLAN.md`](docs/SPRINT_PLAN.md) — planificación de sprints y asignación de trabajo.
 - [`docs/CLICKUP_SETUP.md`](docs/CLICKUP_SETUP.md) — guía paso a paso para montar el tablero en ClickUp.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — cómo conectar Vercel/Render/Elastic Cloud y despliegues por rama (preview).
+- [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md) — rol de administrador, login con JWT y cómo crear el primer admin.
 - [`docs/GUIA_CRUD_PASO_A_PASO.md`](docs/GUIA_CRUD_PASO_A_PASO.md) — tutorial para implementar el CRUD de un microservicio contra MySQL, de principio a fin.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — flujo de Git, convención de commits y proceso de Pull Request.
 

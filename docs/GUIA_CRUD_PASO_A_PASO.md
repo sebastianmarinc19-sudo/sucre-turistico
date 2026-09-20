@@ -222,6 +222,8 @@ curl -X DELETE http://localhost:4001/api/destinos/1
 
 También puedes probar a través del Gateway (`http://localhost:4000/api/destinos`) para confirmar que el proxy funciona.
 
+> **Ojo con las escrituras a través del Gateway.** Los `GET` son públicos, pero `POST`, `PUT` y `DELETE` en el puerto 4000 exigen un token de administrador y responden `401` sin él. Mientras desarrollas, lo más cómodo es probar **directo contra tu servicio en el puerto 4001**, que no pide token. Si necesitas probar la cadena completa, saca un token siguiendo [`AUTENTICACION.md`](AUTENTICACION.md) y mándalo en el header `Authorization: Bearer <token>`.
+
 Si prefieres una interfaz visual en vez de `curl`, usa [Postman](https://www.postman.com/) o la extensión "Thunder Client" de VS Code.
 
 ## Paso 6 — Agregar una prueba automática
