@@ -10,6 +10,7 @@ jobs:
   build-services:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         service:
           - api-gateway
@@ -22,64 +23,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check if service has code yet
-        id: check
-        run: |
-          if [ -f "${{ matrix.service }}/package.json" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
+      # El lockfile vive solo en la raíz porque usamos npm workspaces:
+      # apuntar la caché a <servicio>/package-lock.json hacía fallar el job.
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.exists == 'true'
         with:
-          node-version: 18
+          node-version: 22
           cache: npm
-          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
-        if: steps.check.outputs.exists == 'true'
-        working-directory: ${{ matrix.service }}
+      - name: Instalar dependencias (raíz, incluye todos los workspaces)
         run: npm install
 
-      - name: Run tests (if present)
-        if: steps.check.outputs.exists == 'true'
-        working-directory: ${{ matrix.service }}
-        run: npm test --if-present
+      - name: Ejecutar pruebas de ${{ matrix.service }} (si existen)
+        run: npm test --workspace=${{ matrix.service }} --if-present
 
-      - name: Build Docker image
-        if: steps.check.outputs.exists == 'true'
+      - name: Construir imagen Docker de ${{ matrix.service }}
         working-directory: ${{ matrix.service }}
-        run: docker build -t ${{ matrix.service }} .
+        run: docker build -t ci-build .
 
   build-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check if frontend has code yet
-        id: check
-        run: |
-          if [ -f "frontend/package.json" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.exists == 'true'
         with:
-          node-version: 18
+          node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        if: steps.check.outputs.exists == 'true'
+      - name: Instalar dependencias
         working-directory: frontend
         run: npm install
 
       - name: Build
-        if: steps.check.outputs.exists == 'true'
         working-directory: frontend
         run: npm run build
