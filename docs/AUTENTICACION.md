@@ -99,7 +99,8 @@ El flujo que hay que construir en React:
 
 - Las contraseñas se guardan con **bcrypt** (10 rondas), nunca en texto plano. En la base solo queda el hash.
 - Login con email inexistente y login con clave incorrecta devuelven **el mismo mensaje**, para no revelar qué correos están registrados.
-- El `JWT_SECRET` no está en el repositorio: viene por variable de entorno. Si falta, el gateway falla al arrancar con un mensaje claro en vez de usar un valor por defecto inseguro.
+- El `JWT_SECRET` no está en el repositorio: viene por variable de entorno, y **no hay valor por defecto**. Sin él no se puede firmar ni verificar ningún token.
+- **Si falta, el gateway arranca igual pero la autenticación queda deshabilitada.** El catálogo (todos los `GET`) sigue funcionando, y el login y las escrituras responden `503` explicando el motivo. Es una decisión deliberada: que el login esté mal configurado no debería dejar sin servicio a un turista que solo quiere consultar. No abre ningún hueco — sin secreto las escrituras siguen rechazadas, solo cambia el código de error.
 - El gateway sigue sin usar `express.json()` de forma global — solo dentro de las rutas de auth — porque parsear el body rompería el reenvío de los POST hacia los microservicios.
 
 ## Pendiente para producción (Render)

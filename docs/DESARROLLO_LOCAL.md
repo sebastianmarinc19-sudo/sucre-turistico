@@ -143,8 +143,8 @@ Quedó un proceso vivo de un arranque anterior:
 npx kill-port 4000 4001 4002 4003 4004 4005 4006
 ```
 
-**El gateway no arranca y dice que falta `JWT_SECRET`.**
-No corriste `npm run setup`, o lo corriste antes de actualizar el repo. Bórrate los `.env` y vuelve a generarlos:
+**El gateway avisa que falta `JWT_SECRET`, y el login responde `503`.**
+El gateway arranca igual y el catálogo funciona, pero el login y las escrituras quedan deshabilitados. Te pasa si no corriste `npm run setup`, o si lo corriste antes de actualizar el repo. Bórrate los `.env` y vuelve a generarlos:
 
 ```bash
 rm api-gateway/.env services/*/.env && npm run setup

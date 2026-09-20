@@ -1,7 +1,15 @@
-const { verificar } = require('./tokens');
+const { verificar, haySecreto } = require('./tokens');
+
+const SIN_CONFIGURAR = {
+  error: 'La autenticacion no esta configurada en este servidor: falta la variable JWT_SECRET.',
+};
 
 // Exige un token valido con rol de administrador.
 function requiereAdmin(req, res, next) {
+  // Va primero: sin secreto no se puede verificar nada, y un 503 explica el
+  // problema real mucho mejor que un 401 diciendo "token invalido".
+  if (!haySecreto()) return res.status(503).json(SIN_CONFIGURAR);
+
   const [tipo, token] = (req.headers.authorization || '').split(' ');
 
   if (tipo !== 'Bearer' || !token) {
@@ -38,4 +46,4 @@ function protegerEscrituras(prefijos) {
   };
 }
 
-module.exports = { requiereAdmin, protegerEscrituras };
+module.exports = { requiereAdmin, protegerEscrituras, SIN_CONFIGURAR };

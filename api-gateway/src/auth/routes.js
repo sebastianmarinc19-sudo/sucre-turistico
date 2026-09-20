@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { firmar } = require('./tokens');
-const { requiereAdmin } = require('./middleware');
+const { requiereAdmin, SIN_CONFIGURAR } = require('./middleware');
+const { haySecreto } = require('./tokens');
 
 const RONDAS_BCRYPT = 10;
 
@@ -23,6 +24,13 @@ function crearRutasAuth(repo) {
   // express.json() va solo aqui, no global: el gateway NO debe parsear el body
   // de las rutas que reenvia por proxy, porque eso rompe los POST.
   router.use(express.json());
+
+  // Sin secreto no tiene sentido intentar nada de esto: un 503 con el motivo
+  // real es mas util que dejar que falle mas adelante de forma confusa.
+  router.use((req, res, next) => {
+    if (!haySecreto()) return res.status(503).json(SIN_CONFIGURAR);
+    next();
+  });
 
   // POST /api/auth/login  -> { token, usuario }
   router.post('/login', async (req, res) => {
