@@ -26,6 +26,8 @@ npm run up
 
 Esto levanta MySQL local en `localhost:3306` y todos los servicios. **Vamos a trabajar contra este MySQL local, no contra la base de datos en la nube** — así nadie pisa el trabajo de nadie ni gastamos la cuota gratis compartida.
 
+> **Si tu equipo tiene 6 GB de RAM o menos, `npm run up` se va a caer.** El stack completo pide ~4.3 GB. No es que hayas hecho algo mal. Usa la ruta ligera de [`DESARROLLO_LOCAL.md`](DESARROLLO_LOCAL.md): levantas MySQL solo con `docker compose up -d mysql` (~400 MB) y tu servicio con `npm start` desde su carpeta. El resto de la guía funciona igual.
+
 ## Paso 1 — Instalar el driver de MySQL
 
 Dentro de `services/destinos-service/`:
@@ -221,6 +223,8 @@ curl -X DELETE http://localhost:4001/api/destinos/1
 ```
 
 También puedes probar a través del Gateway (`http://localhost:4000/api/destinos`) para confirmar que el proxy funciona.
+
+> **Ojo con las escrituras a través del Gateway.** Los `GET` son públicos, pero `POST`, `PUT` y `DELETE` en el puerto 4000 exigen un token de administrador y responden `401` sin él. Mientras desarrollas, lo más cómodo es probar **directo contra tu servicio en el puerto 4001**, que no pide token. Si necesitas probar la cadena completa, saca un token siguiendo [`AUTENTICACION.md`](AUTENTICACION.md) y mándalo en el header `Authorization: Bearer <token>`.
 
 Si prefieres una interfaz visual en vez de `curl`, usa [Postman](https://www.postman.com/) o la extensión "Thunder Client" de VS Code.
 

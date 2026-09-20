@@ -48,6 +48,17 @@ La columna **Épica** sirve para agrupar las tareas equivalentes en ClickUp.
 | 14 | Como turista, quiero ver sugerencias mientras escribo (search-as-you-type / autocompletado), para agilizar la búsqueda. | Alta |
 | 15 | Como turista, quiero filtrar resultados con facets (municipio, categoría, tipo, precio), para refinar mi búsqueda. | Alta |
 
+## Épica: Administración y acceso
+
+| # | Historia de usuario | Prioridad |
+|---|---|---|
+| 20 | Como administrador, quiero iniciar sesión con usuario y contraseña, para acceder al panel de gestión. | Alta |
+| 21 | Como equipo, queremos que solo un administrador autenticado pueda crear/editar/borrar contenido, para que nadie modifique la información desde internet. | Alta |
+| 22 | Como turista, quiero consultar toda la información sin necesidad de crear una cuenta, para explorar sin fricción. | Alta |
+| 23 | Como administrador, quiero una pantalla de login y un panel para gestionar el contenido, para no depender de Postman. | Alta |
+
+> Las historias 20-22 ya están implementadas en el API Gateway (ver [`AUTENTICACION.md`](AUTENTICACION.md)). La 23 es trabajo de front-end.
+
 ## Épica: Plataforma / Infraestructura
 
 | # | Historia de usuario | Prioridad |

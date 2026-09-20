@@ -35,6 +35,11 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | Maquetar páginas React (destinos, hoteles, restaurantes, experiencias, eventos) | Halit | frontend |
 | Conectar React con API Gateway (Axios, manejo de errores/loading) | Jaime | frontend |
 | Reemplazar datos de prueba (mock) por datos reales de la API | Todos | frontend |
+| Pantalla de login + panel de administración (historia 23) | Jaime | frontend |
+
+> **Alcance agregado después de la planeación inicial:** el rol Administrador del enunciado. La parte de back-end (login con JWT, protección de escrituras, tabla `usuarios`) ya está hecha en el API Gateway — ver [`AUTENTICACION.md`](AUTENTICACION.md). Lo que queda es la pantalla de login y el panel, que son front-end.
+>
+> Esto suma trabajo a un sprint que ya era el más cargado. Si el calendario aprieta, la salida es recortar el panel a lo mínimo (un formulario de login + una tabla por entidad con crear/editar/borrar), no recortar los facets, que son un criterio completo de la rúbrica.
 
 ## Sprint 4 — Despliegue y cierre
 *Cubre criterio 5 (Despliegue — 20%) y criterio 6 (Documentación y videomemoria — 10%)*

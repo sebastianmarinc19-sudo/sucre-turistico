@@ -17,6 +17,8 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 - [`docs/SPRINT_PLAN.md`](docs/SPRINT_PLAN.md) — planificación de sprints y asignación de trabajo.
 - [`docs/CLICKUP_SETUP.md`](docs/CLICKUP_SETUP.md) — guía paso a paso para montar el tablero en ClickUp.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — cómo conectar Vercel/Render/Elastic Cloud y despliegues por rama (preview).
+- [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md) — rol de administrador, login con JWT y cómo crear el primer admin.
+- [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md) — **empieza por aquí**: las dos formas de correr el proyecto (con y sin Docker) y los problemas conocidos.
 - [`docs/GUIA_CRUD_PASO_A_PASO.md`](docs/GUIA_CRUD_PASO_A_PASO.md) — tutorial para implementar el CRUD de un microservicio contra MySQL, de principio a fin.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — flujo de Git, convención de commits y proceso de Pull Request.
 
@@ -49,10 +51,12 @@ sucre-turistico/
 
 ## Quickstart (clonar y arrancar)
 
-Requisitos: **Node.js 18+**, **Docker Desktop**, **Git**.
+Requisitos: **Node.js 20.19+ o 22+** (Vite 8 no corre con Node 18), **Git**, y **Docker Desktop** según la ruta que uses.
+
+> **Antes de arrancar, mira cuánta RAM tiene tu equipo.** Con **6 GB o menos, `npm run up` no te va a funcionar**: el stack completo pide ~4.3 GB y Docker se cae. En ese caso usa la ruta ligera (sin Docker, 625 MB) que está en [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md). No pierdas una tarde creyendo que hiciste algo mal.
 
 ```bash
-git clone <URL-DEL-REPO>
+git clone https://github.com/sebastianmarinc19-sudo/sucre-turistico.git
 cd sucre-turistico
 git checkout develop
 
@@ -61,6 +65,8 @@ npm run setup      # crea los .env de cada servicio a partir de sus .env.example
 
 npm run up         # equivalente a: docker compose up --build
 ```
+
+Si algo falla, [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md) tiene una sección de problemas conocidos con los errores que ya nos salieron montando esto.
 
 - Front-end: http://localhost:3000 (una vez exista, ver [`frontend/README.md`](frontend/README.md))
 - API Gateway: http://localhost:4000/health
