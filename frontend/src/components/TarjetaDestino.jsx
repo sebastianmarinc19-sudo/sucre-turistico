@@ -1,3 +1,6 @@
+// COMPONENTE DE EJEMPLO — patron para TarjetaAlojamiento, TarjetaRestaurante, etc.
+// Solo presenta: recibe los datos por props y no llama a ninguna API.
+
 // Muestra un destino. Recibe los datos por props y no sabe de donde salieron:
 // eso lo hace reutilizable y facil de probar.
 const ETIQUETAS_CATEGORIA = {

@@ -2,6 +2,16 @@
 
 App React con [Vite](https://vitejs.dev/), React Router, Axios y Bootstrap.
 
+> ## ⚠️ Lee esto antes de tocar nada
+>
+> **Solo hay una página implementada: `src/pages/Destinos.jsx`.** Es un **ejemplo trabajado**, no la app terminada. Existe para que copies el patrón, no para que la uses tal cual.
+>
+> Las páginas de alojamiento, gastronomía, experiencias y eventos son marcadores de posición en `App.jsx`. Hacerlas es el trabajo del Sprint 3.
+>
+> **Si abres la app y Destinos muestra un error, no está roto.** Falta el CRUD de `destinos-service` en el back-end (ver [`docs/GUIA_CRUD_PASO_A_PASO.md`](../docs/GUIA_CRUD_PASO_A_PASO.md)). Cuando ese endpoint exista, la página se llena sola.
+>
+> Hay un aviso azul en pantalla explicando lo mismo. **Bórrenlo antes de la entrega final** — está en `App.jsx`, se llama `AvisoDemo`.
+
 ## Correrlo
 
 ```bash

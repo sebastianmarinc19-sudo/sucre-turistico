@@ -1,3 +1,20 @@
+// ============================================================================
+// PAGINA DE EJEMPLO — este es el patron a copiar para las demas paginas.
+//
+// Es la unica pagina implementada del proyecto. Alojamiento, gastronomia,
+// experiencias y eventos son EXACTAMENTE esto, cambiando el endpoint y los
+// campos. Ver frontend/README.md.
+//
+// Lo que hay que replicar, y por que:
+//   1. Los CUATRO estados: cargando, error, lista vacia y datos. La rubrica
+//      pide "gestionando adecuadamente las peticiones HTTP, errores y
+//      respuestas" (criterio 4, el de mayor peso). No basta con pintar datos.
+//   2. Llamar SIEMPRE al Gateway (/api/...), nunca a un microservicio directo
+//      (localhost:4001). Directo no funciona en produccion.
+//   3. Cancelar el efecto al desmontar, para que una respuesta vieja no pise
+//      a una nueva cuando se cambia de filtro rapido.
+// ============================================================================
+
 import { useEffect, useState } from 'react';
 import api, { mensajeDeError } from '../api/client';
 import TarjetaDestino from '../components/TarjetaDestino';

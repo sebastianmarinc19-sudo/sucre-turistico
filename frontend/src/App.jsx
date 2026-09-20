@@ -1,6 +1,21 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Destinos from './pages/Destinos';
 
+// AVISO TEMPORAL — BORRAR antes de la entrega final y de grabar la videomemoria.
+// Esta aqui para que quien clone el repo entienda de una que el proyecto esta
+// a medias y cual es la pagina de ejemplo.
+function AvisoDemo() {
+  return (
+    <div className="alert alert-info border-0 small mb-4" role="note">
+      <strong>Proyecto en desarrollo.</strong> Solo <strong>Destinos</strong> esta
+      implementada, y sirve de ejemplo del patron a seguir: mira{' '}
+      <code>src/pages/Destinos.jsx</code> y <code>frontend/README.md</code>.
+      Las demas secciones estan pendientes. Si Destinos muestra un error, es porque
+      falta el CRUD de <code>destinos-service</code> en el back-end.
+    </div>
+  );
+}
+
 // Marcador de posicion para las paginas que aun no existen.
 // Halit y Jaime las van reemplazando por paginas reales (ver SPRINT_PLAN.md).
 function EnConstruccion({ titulo }) {
@@ -46,6 +61,7 @@ function App() {
       </nav>
 
       <main className="container pb-5">
+        <AvisoDemo />
         <Routes>
           <Route path="/" element={<Destinos />} />
           <Route path="/alojamiento" element={<EnConstruccion titulo="Alojamiento" />} />
