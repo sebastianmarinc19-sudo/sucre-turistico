@@ -8,6 +8,9 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # MySQL ejecuta los .sql de esta carpeta solo la primera vez que se crea
+      # el volumen. Para reaplicarlos: docker compose down -v && npm run up
+      - ./docs/sql:/docker-entrypoint-initdb.d:ro
     # MySQL tarda 20-40s en aceptar conexiones; los servicios arrancan en 2s.
     # Sin este healthcheck, las primeras peticiones fallan y parece un bug del codigo.
     healthcheck:
@@ -138,15 +141,32 @@ services:
       - EXPERIENCIAS_URL=http://experiencias-service:4004
       - EVENTOS_URL=http://eventos-service:4005
       - BUSCADOR_URL=http://buscador-service:4006
+      # Autenticacion del panel de admin. Este secreto es solo de desarrollo:
+      # en Render hay que definir uno distinto (ver docs/AUTENTICACION.md).
+      - JWT_SECRET=desarrollo-local-no-usar-en-produccion
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=sucre_turistico
+      - DB_SSL=false
     ports:
       - "4000:4000"
     depends_on:
-      - destinos-service
-      - alojamiento-service
-      - gastronomia-service
-      - experiencias-service
-      - eventos-service
-      - buscador-service
+      mysql:
+        condition: service_healthy
+      destinos-service:
+        condition: service_started
+      alojamiento-service:
+        condition: service_started
+      gastronomia-service:
+        condition: service_started
+      experiencias-service:
+        condition: service_started
+      eventos-service:
+        condition: service_started
+      buscador-service:
+        condition: service_started
 
   frontend:
     build: ./frontend
