@@ -8,7 +8,7 @@ const { createApp } = require('../src/app');
 const { crearRepoEnMemoria } = require('../src/auth/repo-en-memoria');
 const { firmar } = require('../src/auth/tokens');
 
-const ADMIN = { nombre: 'Sebastian', email: 'admin@sucreturistico.co', rol: 'admin' };
+const ADMIN = { nombre: 'Sebastian', email: 'admin@sucreturistico.co' };
 const CLAVE = 'clave-super-segura';
 
 let upstream;
@@ -56,7 +56,7 @@ test('login con credenciales correctas devuelve un token', async (t) => {
 
   assert.strictEqual(res.status, 200);
   assert.ok(body.token, 'deberia venir un token');
-  assert.strictEqual(body.usuario.rol, 'admin');
+  assert.strictEqual(body.usuario.email, ADMIN.email);
   assert.strictEqual(body.usuario.password_hash, undefined, 'nunca devolver el hash');
 });
 
@@ -126,17 +126,26 @@ test('crear un destino con token de admin llega al microservicio', async (t) => 
   assert.deepStrictEqual(body.creado, { nombre: 'Playa Coveñas' });
 });
 
-test('borrar con un token que no es de admin devuelve 403', async (t) => {
+test('borrar sin token devuelve 401', async (t) => {
   const { url, server } = await levantarGateway({ usuarios: await adminEnBase() });
   t.after(() => server.close());
 
-  const token = firmar({ id: 2, nombre: 'Turista', email: 'turista@x.co', rol: 'turista' });
+  const res = await fetch(`${url}/api/destinos/1`, { method: 'DELETE' });
+
+  assert.strictEqual(res.status, 401);
+});
+
+test('borrar con un token valido llega al microservicio', async (t) => {
+  const { url, server } = await levantarGateway({ usuarios: await adminEnBase() });
+  t.after(() => server.close());
+
+  const token = firmar({ id: 1, ...ADMIN });
   const res = await fetch(`${url}/api/destinos/1`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  assert.strictEqual(res.status, 403);
+  assert.strictEqual(res.status, 204);
 });
 
 test('un token inventado devuelve 401', async (t) => {
@@ -152,7 +161,7 @@ test('un token inventado devuelve 401', async (t) => {
   assert.strictEqual(res.status, 401);
 });
 
-test('la primera cuenta se crea sin token y queda como admin', async (t) => {
+test('la primera cuenta se crea sin token', async (t) => {
   const { url, server } = await levantarGateway({ usuarios: [] });
   t.after(() => server.close());
 
@@ -164,7 +173,7 @@ test('la primera cuenta se crea sin token y queda como admin', async (t) => {
   const body = await res.json();
 
   assert.strictEqual(res.status, 201);
-  assert.strictEqual(body.rol, 'admin');
+  assert.strictEqual(body.email, ADMIN.email);
 });
 
 test('ya existiendo un usuario, registrar otro sin token devuelve 401', async (t) => {
@@ -203,5 +212,5 @@ test('GET /api/auth/yo devuelve los datos del token', async (t) => {
 
   assert.strictEqual(res.status, 200);
   assert.strictEqual(body.email, ADMIN.email);
-  assert.strictEqual(body.rol, 'admin');
+  assert.strictEqual(body.nombre, ADMIN.nombre);
 });

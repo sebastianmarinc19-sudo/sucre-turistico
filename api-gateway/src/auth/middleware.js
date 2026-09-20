@@ -4,7 +4,9 @@ const SIN_CONFIGURAR = {
   error: 'La autenticacion no esta configurada en este servidor: falta la variable JWT_SECRET.',
 };
 
-// Exige un token valido con rol de administrador.
+// Exige un token valido. Todo el que tiene cuenta es administrador: el
+// turista accede al catalogo sin registrarse, asi que no hay roles que
+// distinguir (ver docs/sql/01-usuarios.sql).
 function requiereAdmin(req, res, next) {
   // Va primero: sin secreto no se puede verificar nada, y un 503 explica el
   // problema real mucho mejor que un 401 diciendo "token invalido".
@@ -24,15 +26,11 @@ function requiereAdmin(req, res, next) {
     return res.status(401).json({ error: expirado ? 'El token expiro, vuelve a iniciar sesion' : 'Token invalido' });
   }
 
-  if (payload.rol !== 'admin') {
-    return res.status(403).json({ error: 'Necesitas rol de administrador para esta operacion' });
-  }
-
   req.usuario = payload;
   return next();
 }
 
-// Los turistas consultan sin iniciar sesion: solo las escrituras piden admin.
+// Los turistas consultan sin iniciar sesion: solo las escrituras piden cuenta.
 // Asi el catalogo queda publico y el panel de administracion, protegido.
 const SOLO_LECTURA = ['GET', 'HEAD', 'OPTIONS'];
 

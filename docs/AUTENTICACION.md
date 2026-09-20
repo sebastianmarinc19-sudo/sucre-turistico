@@ -1,4 +1,4 @@
-# Autenticación y rol de administrador
+# Autenticación del administrador
 
 El enunciado define dos tipos de usuario: **turista** (consulta) y **administrador** (registra y gestiona contenido). Esto es lo que implementa esa distinción.
 
@@ -12,10 +12,12 @@ El enunciado fija seis microservicios definitivos; agregar un séptimo `auth-ser
 
 | Quién | Qué puede hacer |
 |---|---|
-| Cualquiera, sin cuenta | `GET` a todos los servicios: ver destinos, hoteles, restaurantes, eventos, buscar |
-| Administrador con token | Todo lo anterior + `POST`, `PUT`, `DELETE` (crear, editar y borrar contenido) |
+| **Turista** — cualquiera, sin cuenta | `GET` a todos los servicios: ver destinos, hoteles, restaurantes, eventos, buscar. Sin registrarse ni iniciar sesión. |
+| **Administrador** — con token | Todo lo anterior + `POST`, `PUT`, `DELETE` (crear, editar y borrar contenido) |
 
-La regla vive en [`api-gateway/src/auth/middleware.js`](../api-gateway/src/auth/middleware.js): los métodos de lectura pasan directo, los de escritura exigen un token con `rol: "admin"`.
+La regla vive en [`api-gateway/src/auth/middleware.js`](../api-gateway/src/auth/middleware.js): los métodos de lectura pasan directo, los de escritura exigen un token válido.
+
+**No hay roles en el sistema, y es deliberado.** El turista no es un usuario con cuenta: es un visitante anónimo que accede directo a toda la información, como lo describe el enunciado. La tabla `usuarios` guarda únicamente administradores, así que no hay nada que distinguir — quien tiene cuenta, administra. Si en la sustentación preguntan por los "dos tipos de usuario" del enunciado, esa es la respuesta.
 
 Esto además cierra un agujero real: los microservicios están públicos en Render, así que sin esta capa cualquiera en internet podría escribir en la base de datos en cuanto existieran los endpoints de escritura.
 
