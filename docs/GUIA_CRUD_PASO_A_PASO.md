@@ -26,6 +26,8 @@ npm run up
 
 Esto levanta MySQL local en `localhost:3306` y todos los servicios. **Vamos a trabajar contra este MySQL local, no contra la base de datos en la nube** — así nadie pisa el trabajo de nadie ni gastamos la cuota gratis compartida.
 
+> **Si tu equipo tiene 6 GB de RAM o menos, `npm run up` se va a caer.** El stack completo pide ~4.3 GB. No es que hayas hecho algo mal. Usa la ruta ligera de [`DESARROLLO_LOCAL.md`](DESARROLLO_LOCAL.md): levantas MySQL solo con `docker compose up -d mysql` (~400 MB) y tu servicio con `npm start` desde su carpeta. El resto de la guía funciona igual.
+
 ## Paso 1 — Instalar el driver de MySQL
 
 Dentro de `services/destinos-service/`:

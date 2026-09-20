@@ -70,6 +70,12 @@ Si ya habías levantado la base antes de este cambio, la tabla no existe todaví
 docker compose down -v && npm run up
 ```
 
+O, si estás en la ruta ligera de [`DESARROLLO_LOCAL.md`](DESARROLLO_LOCAL.md) (equipos de 6 GB o menos):
+
+```bash
+docker compose down -v && docker compose up -d mysql
+```
+
 Ojo: `-v` borra los datos locales de MySQL. Es tu base de desarrollo, no pasa nada, pero perderás los destinos de prueba que hayas insertado.
 
 ## Desde el front-end
