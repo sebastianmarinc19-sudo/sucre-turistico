@@ -1,3 +1,8 @@
+-- Fuerza UTF-8 en esta sesion de importacion. Sin esto, MySQL usa latin1
+-- por defecto para character_set_client/connection y las tildes/enies quedan
+-- guardadas mal (doble-codificadas) aunque la tabla sea utf8mb4.
+SET NAMES utf8mb4;
+
 -- Datos de ejemplo para desarrollo y para la demo.
 --
 -- Sirven para tres cosas:

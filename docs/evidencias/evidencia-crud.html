@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Evidencias CRUD — Sucre Turístico</title>
+<style>
+  :root { --primary:#0077B6; --primary-dk:#005f91; --text:#1A1A2E; --text-2:#717171; --border:#EBEBEB; --bg:#F7F7F7; --success:#008A05; --danger:#C13515; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--text-2); font-size: 13px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+  .card-head { display:flex; align-items:center; gap:10px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #fafafa; }
+  .method { font-weight: 700; font-size: 12px; padding: 3px 8px; border-radius: 4px; color: #fff; min-width: 48px; text-align:center; }
+  .GET { background: var(--primary); }
+  .POST { background: var(--success); }
+  .PUT { background: #C47706; }
+  .DELETE { background: var(--danger); }
+  .url { font-family: Consolas, monospace; font-size: 13px; flex: 1; }
+  .status { font-family: Consolas, monospace; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .status.ok { background: #EAF5EA; color: var(--success); }
+  .status.err { background: #FDECEC; color: var(--danger); }
+  pre { margin: 0; padding: 12px 14px; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow:auto; }
+  .note { padding: 8px 14px; font-size: 12px; color: var(--text-2); border-top: 1px dashed var(--border); }
+  .section-title { font-size: 15px; font-weight: 700; margin: 26px 0 10px; color: var(--primary-dk); }
+</style>
+</head>
+<body>
+  <h1>Evidencias de funcionamiento — CRUD de microservicios</h1>
+  <div class="sub">Sucre Turístico · Entrega 1 · Generado automáticamente contra los servicios corriendo en localhost</div>
+  <div id="out"></div>
+
+<script>
+const out = document.getElementById('out');
+
+function sectionTitle(text) {
+  const h = document.createElement('div');
+  h.className = 'section-title';
+  h.textContent = text;
+  out.appendChild(h);
+}
+
+async function call(method, url, body, note) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const opts = { method, headers: {} };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  let status, text;
+  try {
+    const res = await fetch(url, opts);
+    status = res.status;
+    text = res.status === 204 ? '(sin contenido — eliminación correcta)' : await res.text();
+    try { text = JSON.stringify(JSON.parse(text), null, 2); } catch (e) {}
+  } catch (e) {
+    status = 0; text = 'ERROR DE RED: ' + e.message;
+  }
+  const ok = status >= 200 && status < 300 || (note && note.includes('esperado'));
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="method ${method}">${method}</span>
+      <span class="url">${url}</span>
+      <span class="status ${ok ? 'ok' : 'err'}">HTTP ${status}</span>
+    </div>
+    <pre>${(text || '').replace(/</g,'&lt;')}</pre>
+    ${note ? `<div class="note">${note}</div>` : ''}
+  `;
+  out.appendChild(card);
+  return { status, text };
+}
+
+(async () => {
+  sectionTitle('1. destinos-service (puerto 4001)');
+  await call('GET', 'http://localhost:4001/health');
+  await call('GET', 'http://localhost:4001/api/destinos', null, 'Listado — datos de docs/sql/04-datos-ejemplo.sql, con JOIN a municipios');
+  const d = await call('POST', 'http://localhost:4001/api/destinos', {
+    nombre: 'Volcán del Totumo', municipio_id: 7, categoria: 'atractivo_natural', descripcion: 'Barro terapéutico cerca de Coveñas.'
+  }, 'Crear');
+  let newId = null;
+  try { newId = JSON.parse(d.text).id; } catch (e) {}
+  if (newId) {
+    await call('GET', `http://localhost:4001/api/destinos/${newId}`, null, 'Leer el registro recién creado');
+    await call('PUT', `http://localhost:4001/api/destinos/${newId}`, {
+      nombre: 'Volcán del Totumo (actualizado)', municipio_id: 7, categoria: 'atractivo_natural', descripcion: 'Descripción actualizada.'
+    }, 'Actualizar');
+    await call('DELETE', `http://localhost:4001/api/destinos/${newId}`, null, 'Eliminar (soft delete — 204 esperado)');
+    await call('GET', `http://localhost:4001/api/destinos/${newId}`, null, '404 esperado: ya no aparece tras el soft delete');
+  }
+
+  sectionTitle('2. alojamiento-service (puerto 4002)');
+  await call('GET', 'http://localhost:4002/health');
+  await call('GET', 'http://localhost:4002/api/alojamientos', null, 'Listado con precio, capacidad, estrellas y servicios (JSON)');
+  const a = await call('POST', 'http://localhost:4002/api/alojamientos', {
+    nombre: 'Posada El Manglar', municipio_id: 7, tipo: 'posada', descripcion: 'Posada frente al mar en Coveñas.',
+    precio_noche: 120000, capacidad: 4, estrellas: 3, servicios: ['wifi', 'desayuno']
+  }, 'Crear');
+  let idA = null;
+  try { idA = JSON.parse(a.text).id; } catch (e) {}
+  if (idA) await call('DELETE', `http://localhost:4002/api/alojamientos/${idA}`, null, 'Eliminar (soft delete — 204 esperado)');
+
+  sectionTitle('3. gastronomia-service (puerto 4003)');
+  await call('GET', 'http://localhost:4003/health');
+  await call('GET', 'http://localhost:4003/api/gastronomia', null, 'Listado de restaurantes con tipo de cocina y rango de precio');
+  const g = await call('POST', 'http://localhost:4003/api/gastronomia', {
+    nombre: 'Cazuela del Golfo', municipio_id: 7, tipo_cocina: 'mariscos', descripcion: 'Especialidad en cazuela de mariscos.', rango_precio: 'medio'
+  }, 'Crear');
+  let idG = null;
+  try { idG = JSON.parse(g.text).id; } catch (e) {}
+  if (idG) await call('DELETE', `http://localhost:4003/api/gastronomia/${idG}`, null, 'Eliminar (soft delete — 204 esperado)');
+
+  sectionTitle('4. API Gateway (puerto 4000) — prueba del proxy y la seguridad');
+  await call('GET', 'http://localhost:4000/health');
+  await call('GET', 'http://localhost:4000/api/destinos', null, 'Lectura pública a través del Gateway — debe responder igual que el servicio directo');
+  await call('POST', 'http://localhost:4000/api/destinos', {}, 'Sin token de administrador — 401 esperado (protección de escrituras funcionando)');
+})();
+</script>
+</body>
+</html>

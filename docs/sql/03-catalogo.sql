@@ -1,3 +1,8 @@
+-- Fuerza UTF-8 en esta sesion de importacion. Sin esto, MySQL usa latin1
+-- por defecto para character_set_client/connection y las tildes/enies quedan
+-- guardadas mal (doble-codificadas) aunque la tabla sea utf8mb4.
+SET NAMES utf8mb4;
+
 -- Esquema del catalogo turistico: las 5 entidades del negocio.
 --
 -- ============================================================================
