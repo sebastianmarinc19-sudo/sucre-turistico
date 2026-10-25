@@ -87,10 +87,13 @@ useEffect(() => {
 
 Los `GET` son públicos. Crear, editar y borrar exigen un token de administrador, que `src/api/client.js` manda solo si existe en `localStorage`. Ver [`docs/AUTENTICACION.md`](../docs/AUTENTICACION.md).
 
-La pantalla de login y el panel de administración todavía no existen: es la historia 23 del backlog.
+El panel está en `/admin` (enlace "Administrar" en el menú). Pide iniciar sesión en `/admin/login` y tiene una pestaña por entidad con su tabla para crear, editar y eliminar.
+
+- `src/admin/entidades.js` — qué columnas y qué campos tiene cada entidad. Para agregar un campo o una entidad, se toca solo este archivo.
+- `src/admin/TablaCrud.jsx` — la tabla y el formulario genéricos que leen esa configuración.
+- `src/api/sesion.js` — iniciar y cerrar sesión. Si una petición vuelve 401 (token vencido), `client.js` borra la sesión y manda al login.
 
 ## Pendiente
 
 - Buscador con facets (Sprint 3).
-- Login y panel de administración.
 - `recharts` para las gráficas, cuando se sepa qué se va a graficar.
