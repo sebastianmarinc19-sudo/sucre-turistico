@@ -50,6 +50,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4001:4001"
     depends_on:
@@ -66,6 +67,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4002:4002"
     depends_on:
@@ -82,6 +84,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4003:4003"
     depends_on:
@@ -98,6 +101,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4004:4004"
     depends_on:
@@ -114,6 +118,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4005:4005"
     depends_on:
@@ -131,6 +136,7 @@ services:
       - GASTRONOMIA_URL=http://gastronomia-service:4003
       - EXPERIENCIAS_URL=http://experiencias-service:4004
       - EVENTOS_URL=http://eventos-service:4005
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4006:4006"
     depends_on:
@@ -156,6 +162,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=sucre_turistico
       - DB_SSL=false
+      - GATEWAY_SECRET=desarrollo-gateway-no-usar-en-produccion
     ports:
       - "4000:4000"
     depends_on:

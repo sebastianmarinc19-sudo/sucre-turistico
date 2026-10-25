@@ -1,4 +1,5 @@
 process.env.JWT_SECRET = 'secreto-solo-para-pruebas';
+process.env.GATEWAY_SECRET = 'secreto-gateway-de-pruebas';
 
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
@@ -25,7 +26,7 @@ before(async () => {
   stub.use(express.json());
   stub.get('/api/destinos', (req, res) => res.json({ rutaRecibida: req.url.split('?')[0], filtros: req.query }));
   stub.get('/api/destinos/:id', (req, res) => res.json({ rutaRecibida: req.url, id: req.params.id }));
-  stub.post('/api/destinos', (req, res) => res.status(201).json({ creado: req.body }));
+  stub.post('/api/destinos', (req, res) => res.status(201).json({ creado: req.body, secreto: req.get('x-gateway-secret') }));
   stub.use((req, res) => res.status(404).json({ error: 'el servicio no reconocio la ruta', rutaRecibida: req.url }));
   upstream = await escuchar(stub);
 
@@ -82,6 +83,24 @@ test('reenvia el body de un POST intacto', async () => {
 
   assert.strictEqual(res.status, 201);
   assert.deepStrictEqual(body.creado, { nombre: 'Playa Coveñas', municipio: 'Coveñas' });
+});
+
+// Los microservicios solo aceptan escrituras con este secreto (solo-gateway.js).
+test('manda X-Gateway-Secret al microservicio y pisa el que mande el cliente', async () => {
+  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co' });
+  const res = await fetch(`${gatewayUrl}/api/destinos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'X-Gateway-Secret': 'uno-inventado-por-el-cliente',
+    },
+    body: JSON.stringify({ nombre: 'Playa Coveñas' }),
+  });
+  const body = await res.json();
+
+  assert.strictEqual(res.status, 201);
+  assert.strictEqual(body.secreto, 'secreto-gateway-de-pruebas');
 });
 
 test('/health responde sin pasar por los microservicios', async () => {

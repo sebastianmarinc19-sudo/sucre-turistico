@@ -1,3 +1,5 @@
+process.env.GATEWAY_SECRET = 'secreto-de-pruebas';
+
 const { test } = require('node:test');
 const assert = require('node:assert');
 const app = require('../src/index');
@@ -14,7 +16,7 @@ async function enviar(metodo, ruta, cuerpo) {
   try {
     const res = await fetch(`http://127.0.0.1:${server.address().port}${ruta}`, {
       method: metodo,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Gateway-Secret': 'secreto-de-pruebas' },
       body: cuerpo ? JSON.stringify(cuerpo) : undefined,
     });
     return { status: res.status, body: await res.json() };

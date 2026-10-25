@@ -1,3 +1,5 @@
+process.env.GATEWAY_SECRET = 'secreto-de-pruebas';
+
 const { test } = require('node:test');
 const assert = require('node:assert');
 const app = require('../src/index');
@@ -23,7 +25,7 @@ test('POST sin los campos obligatorios responde 400', async () => {
   const server = await escuchar();
   const res = await fetch(`http://127.0.0.1:${server.address().port}/api/gastronomia`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Gateway-Secret': 'secreto-de-pruebas' },
     body: JSON.stringify({ nombre: 'Le falta municipio y tipo_cocina' }),
   });
 
@@ -35,7 +37,7 @@ test('PUT sin los campos obligatorios responde 400', async () => {
   const server = await escuchar();
   const res = await fetch(`http://127.0.0.1:${server.address().port}/api/gastronomia/1`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Gateway-Secret': 'secreto-de-pruebas' },
     body: JSON.stringify({ nombre: 'Le falta municipio y tipo_cocina' }),
   });
 

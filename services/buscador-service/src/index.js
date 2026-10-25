@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const soloGateway = require('./solo-gateway');
 const { client, INDICE } = require('./es');
 const { reindexar } = require('./indice');
 const { construirBusqueda, formatearRespuesta, construirSugerencias } = require('./consultas');
@@ -7,6 +8,7 @@ const { construirBusqueda, formatearRespuesta, construirSugerencias } = require(
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(soloGateway);
 
 const PORT = process.env.PORT || 4006;
 
