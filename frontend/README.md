@@ -2,7 +2,7 @@
 
 App React con [Vite](https://vitejs.dev/), React Router, Axios y Bootstrap.
 
-Las cinco secciones están conectadas al API Gateway: **Destinos**, **Alojamiento**, **Gastronomía**, **Experiencias** y **Eventos**. En producción: https://sucre-turistico-frontend.vercel.app
+Las cinco secciones están conectadas al API Gateway: **Destinos**, **Alojamiento**, **Gastronomía**, **Experiencias** y **Eventos**, más **Buscar** (`/buscar`), que busca en todas a la vez con autocompletado y facets. En producción: https://sucre-turistico-frontend.vercel.app
 
 ## Correrlo
 
@@ -95,5 +95,4 @@ El panel está en `/admin` (enlace "Administrar" en el menú). Pide iniciar sesi
 
 ## Pendiente
 
-- Buscador con facets (Sprint 3).
 - `recharts` para las gráficas, cuando se sepa qué se va a graficar.

@@ -4,6 +4,7 @@ import Alojamiento from './pages/Alojamiento';
 import Gastronomia from './pages/Gastronomia';
 import Experiencias from './pages/Experiencias';
 import Eventos from './pages/Eventos';
+import Buscador from './pages/Buscador';
 import Login from './admin/Login';
 import Panel from './admin/Panel';
 
@@ -23,6 +24,7 @@ const ENLACES = [
   { ruta: '/gastronomia', texto: 'Gastronomia' },
   { ruta: '/experiencias', texto: 'Experiencias' },
   { ruta: '/eventos', texto: 'Eventos' },
+  { ruta: '/buscar', texto: 'Buscar' },
 ];
 
 function App() {
@@ -55,6 +57,7 @@ function App() {
           <Route path="/gastronomia" element={<Gastronomia />} />
           <Route path="/experiencias" element={<Experiencias />} />
           <Route path="/eventos" element={<Eventos />} />
+          <Route path="/buscar" element={<Buscador />} />
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin" element={<Panel />} />
           <Route path="/admin/:entidad" element={<Panel />} />
