@@ -46,10 +46,12 @@ const POR_CATEGORIA = {
   deportivo: [MAR_AFUERA],
 };
 
-export function imagenDe(registro, categoria) {
+// `ancho` y `alto` solo aplican a las fotos de respaldo: la portada del
+// detalle las pide mas grandes que las tarjetas.
+export function imagenDe(registro, categoria, ancho, alto) {
   if (registro.imagen_url) return registro.imagen_url;
   const opciones = POR_CATEGORIA[categoria] || [PLAYA];
-  return foto(opciones[(Number(registro.id) || 0) % opciones.length]);
+  return foto(opciones[(Number(registro.id) || 0) % opciones.length], ancho, alto);
 }
 
 export const IMAGEN_HERO = foto(PLAYA, 1600, 800);

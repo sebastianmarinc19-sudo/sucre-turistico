@@ -1,11 +1,18 @@
+import { AvisoDespertando, TarjetasEsqueleto } from './Cargando';
+import { useEsperaLarga } from './useEsperaLarga';
+
 // Los cuatro estados de toda lista que viene de la API: cargando, error,
 // vacia y con datos. Cada pagina solo decide como pinta cada elemento.
 function EstadoLista({ cargando, error, vacio, nombre, children }) {
+  const esperaLarga = useEsperaLarga(cargando);
+
   if (cargando) {
     return (
-      <div className="text-center py-5">
-        <div className="spinner-border" role="status"><span className="visually-hidden">Cargando {nombre}…</span></div>
-      </div>
+      <>
+        <span className="visually-hidden" role="status">Cargando {nombre}…</span>
+        {esperaLarga && <AvisoDespertando />}
+        <TarjetasEsqueleto />
+      </>
     );
   }
   if (error) {
