@@ -4,6 +4,7 @@ import EncabezadoPagina from '../components/EncabezadoPagina';
 import EstadoLista from '../components/EstadoLista';
 import TarjetaEvento from '../components/TarjetaEvento';
 import { useCatalogo, useMunicipios } from '../components/useCatalogo';
+import { hoy } from '../fechas';
 
 const TIPOS = [
   { valor: 'festival', etiqueta: 'Festivales' },
@@ -12,12 +13,6 @@ const TIPOS = [
   { valor: 'cultural', etiqueta: 'Culturales' },
   { valor: 'deportivo', etiqueta: 'Deportivos' },
 ];
-
-// Fecha local en formato AAAA-MM-DD, el que espera la API.
-function hoy() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 function Eventos() {
   const [municipio, setMunicipio] = useState('');

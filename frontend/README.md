@@ -32,18 +32,27 @@ Vite **solo** expone al navegador las variables que empiezan por `VITE_`. Una va
 ```
 src/
 ├── index.css               # sistema de diseño del prototipo (colores, tipografías, componentes st-*)
+├── catalogo.js             # las 5 secciones: endpoint, ruta, etiquetas; y coordenadas de los municipios
 ├── imagenes.js             # foto de respaldo por categoría cuando un registro no tiene imagen
+├── fechas.js               # formato de fechas de la API (sin que la zona horaria corra el día)
 ├── secciones.js            # las 5 secciones del menú
 ├── api/                    # client.js (Axios + reintentos), sesion.js, despertar.js
 ├── components/
 │   ├── Encabezado.jsx, PiePagina.jsx, Logo.jsx, EncabezadoPagina.jsx
 │   ├── Chips.jsx, EstadoLista.jsx, useCatalogo.js
-│   └── Tarjeta*.jsx        # una por catálogo, solo presentan datos
-├── pages/                  # Inicio, Destinos, Alojamiento, Gastronomia, Experiencias, Eventos, Buscador
+│   ├── Cargando.jsx, useEsperaLarga.js   # tarjetas fantasma y aviso de "despertando servidores"
+│   ├── Carrusel.jsx        # Swiper
+│   ├── MapaMunicipios.jsx  # react-leaflet + OpenStreetMap, un círculo por municipio
+│   └── Tarjeta*.jsx        # una por catálogo; toda la tarjeta enlaza a su detalle
+├── pages/                  # Inicio, las 5 secciones, Detalle (/destinos/:id, …) y Buscador
 ├── admin/                  # login y panel de administración
-├── App.jsx                 # rutas
+├── App.jsx                 # rutas (detalle, buscador y panel se cargan aparte, con lazy)
 └── main.jsx
 ```
+
+**Página de detalle.** Una sola (`pages/Detalle.jsx`) para las cinco secciones: lee `GET /api/<sección>/:id` y arma la ficha según `catalogo.js`. Los restaurantes traen además su carta (`platos`, la relación 1-a-muchos del esquema). Abajo muestra un carrusel con otros de la misma sección, primero los del mismo municipio.
+
+**Mapa.** La base no guarda coordenadas por lugar, así que el mapa ubica cada registro en el centro de su municipio (`COORDENADAS_MUNICIPIO`). Si algún día se agregan `latitud`/`longitud` a las tablas, basta con usarlas en `MapaMunicipios.jsx`.
 
 El diseño sigue el prototipo de interfaz (`mokud/`): mismos colores, tipografías (Poppins e Inter), íconos (Font Awesome) y componentes. Los estilos propios llevan el prefijo `st-` para no chocar con los de Bootstrap, que sigue haciendo la grilla y los formularios.
 
