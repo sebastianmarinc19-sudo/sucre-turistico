@@ -2,15 +2,7 @@
 
 App React con [Vite](https://vitejs.dev/), React Router, Axios y Bootstrap.
 
-> ## ⚠️ Lee esto antes de tocar nada
->
-> **Solo hay una página implementada: `src/pages/Destinos.jsx`.** Es un **ejemplo trabajado**, no la app terminada. Existe para que copies el patrón, no para que la uses tal cual.
->
-> Las páginas de alojamiento, gastronomía, experiencias y eventos son marcadores de posición en `App.jsx`. Hacerlas es el trabajo del Sprint 3.
->
-> **Si abres la app y Destinos muestra un error, no está roto.** Falta el CRUD de `destinos-service` en el back-end (ver [`docs/GUIA_CRUD_PASO_A_PASO.md`](../docs/GUIA_CRUD_PASO_A_PASO.md)). Cuando ese endpoint exista, la página se llena sola.
->
-> Hay un aviso azul en pantalla explicando lo mismo. **Bórrenlo antes de la entrega final** — está en `App.jsx`, se llama `AvisoDemo`.
+Las cinco secciones están conectadas al API Gateway: **Destinos**, **Alojamiento**, **Gastronomía**, **Experiencias** y **Eventos**. En producción: https://sucre-turistico-frontend.vercel.app
 
 ## Correrlo
 
@@ -22,6 +14,8 @@ npm run dev
 Queda en http://localhost:3000. Necesita que el **API Gateway esté corriendo en el puerto 4000** (ver [`docs/DESARROLLO_LOCAL.md`](../docs/DESARROLLO_LOCAL.md)).
 
 Si el gateway no está arriba, la página carga igual y muestra un mensaje de error: eso es a propósito, así se ve el manejo de errores funcionando.
+
+Para probar contra los datos de producción sin levantar el back-end, crea `.env.local` (no se sube a git) con `VITE_API_URL=https://sucre-turistico.onrender.com`.
 
 ## Variables de entorno
 
@@ -39,17 +33,25 @@ Vite **solo** expone al navegador las variables que empiezan por `VITE_`. Una va
 src/
 ├── api/
 │   └── client.js           # Axios configurado + traducción de errores
-├── components/
-│   └── TarjetaDestino.jsx  # componente de presentación, recibe props
-├── pages/
-│   └── Destinos.jsx        # página completa: filtros + llamada a la API
+├── components/             # Tarjeta* — solo presentan, reciben datos por props
+│   ├── TarjetaDestino.jsx
+│   ├── TarjetaAlojamiento.jsx
+│   ├── TarjetaRestaurante.jsx
+│   ├── TarjetaExperiencia.jsx
+│   └── TarjetaEvento.jsx
+├── pages/                  # una por sección: filtros + llamada a la API
+│   ├── Destinos.jsx
+│   ├── Alojamiento.jsx
+│   ├── Gastronomia.jsx
+│   ├── Experiencias.jsx
+│   └── Eventos.jsx
 ├── App.jsx                 # rutas y navegación
 └── main.jsx                # punto de entrada
 ```
 
 ## El patrón a seguir
 
-**`src/pages/Destinos.jsx` es el ejemplo trabajado.** Las demás páginas (alojamiento, gastronomía, experiencias, eventos) son el mismo patrón cambiando el endpoint y los campos. Ahora mismo son marcadores de posición en `App.jsx`.
+Las cinco páginas siguen el mismo patrón (el original es `src/pages/Destinos.jsx`), cambiando el endpoint y los campos. Una página nueva debería copiarlo.
 
 Tres cosas que toda página que llame a la API tiene que hacer:
 
@@ -89,7 +91,6 @@ La pantalla de login y el panel de administración todavía no existen: es la hi
 
 ## Pendiente
 
-- Páginas de alojamiento, gastronomía, experiencias y eventos.
 - Buscador con facets (Sprint 3).
 - Login y panel de administración.
 - `recharts` para las gráficas, cuando se sepa qué se va a graficar.
