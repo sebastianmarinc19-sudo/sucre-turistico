@@ -30,6 +30,8 @@ Todo lo anterior corre en planes **$0/mes**, sin tarjeta.
 - 7 Web Services (api-gateway + 6 microservicios), cada uno con Root Directory apuntando a su carpeta y Dockerfile propio, plan **Free**.
 - Auto-deploy activado: cada push a `main` redespliega solo.
 - **Importante:** los servicios free "duermen" tras 15 min sin tráfico y tardan ~50s en la primera respuesta después de eso. Es normal, no es un error.
+  - **Ojo:** si el API Gateway llama a un servicio dormido, Render le responde **429** al instante y **no lo despierta**. Por eso el frontend hace un ping directo a cada microservicio al cargar ([`frontend/src/api/despertar.js`](../frontend/src/api/despertar.js)) y reintenta las lecturas que reciben 429 mientras arrancan ([`client.js`](../frontend/src/api/client.js)). Si se agrega un microservicio, hay que sumarlo a esa lista.
+  - No sirve mantenerlos despiertos con un ping periódico: el plan free da 750 horas/mes para todos los servicios juntos, y 7 servicios encendidos todo el mes son ~5.000.
 - El API Gateway tiene las URLs de los 6 microservicios cargadas como variables de entorno (`DESTINOS_URL`, `ALOJAMIENTO_URL`, etc.) — el proxy ya fue probado y funciona end-to-end.
 
 ### Base de datos → TiDB Cloud (MySQL-compatible)
