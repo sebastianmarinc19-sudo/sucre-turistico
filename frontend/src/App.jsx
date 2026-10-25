@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Destinos from './pages/Destinos';
+import Alojamiento from './pages/Alojamiento';
 import Eventos from './pages/Eventos';
 
 // AVISO TEMPORAL — BORRAR antes de la entrega final y de grabar la videomemoria.
@@ -65,7 +66,7 @@ function App() {
         <AvisoDemo />
         <Routes>
           <Route path="/" element={<Destinos />} />
-          <Route path="/alojamiento" element={<EnConstruccion titulo="Alojamiento" />} />
+          <Route path="/alojamiento" element={<Alojamiento />} />
           <Route path="/gastronomia" element={<EnConstruccion titulo="Gastronomia" />} />
           <Route path="/experiencias" element={<EnConstruccion titulo="Experiencias" />} />
           <Route path="/eventos" element={<Eventos />} />
