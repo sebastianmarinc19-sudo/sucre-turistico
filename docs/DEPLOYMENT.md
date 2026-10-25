@@ -78,6 +78,14 @@ El orden importa: `03` tiene llaves foráneas hacia `municipios`, así que `02` 
 ### Elasticsearch → pendiente a propósito
 Elastic Cloud solo da **14 días gratis**. Si lo activamos ahora, el trial se acaba antes de llegar al Sprint 2 (que es cuando `buscador-service` realmente lo necesita). Activarlo cuando empiecen esa parte — ver [`SPRINT_PLAN.md`](SPRINT_PLAN.md).
 
+## Comprobar que producción funciona
+
+```bash
+node scripts/probar-produccion.js
+```
+
+En ~1 minuto despierta los microservicios y comprueba los 5 catálogos a través del gateway, que una escritura sin token sea rechazada, que exista un administrador y que el frontend responda. No escribe nada en la base. **Córranlo antes de cada demo**: además de verificar, deja todo despierto.
+
 ## Por qué no hay workflow de CD
 
 Existió un `cd.yml`, pero solo imprimía `echo "TODO"` y aun así reportaba **success** en cada push a `main`. Un pipeline que siempre pasa es peor que no tenerlo: enseña al equipo a confiar en una luz verde que no significa nada. Se eliminó.
@@ -97,4 +105,4 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] Aplicar `02`, `03` y `04` en TiDB.
 - [ ] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
 - [ ] Elastic Cloud — activar en Sprint 2.
-- [ ] Código real de conexión a MySQL en cada microservicio — es el trabajo de Sprint 1/2 de cada quien, ver [`GUIA_CRUD_PASO_A_PASO.md`](GUIA_CRUD_PASO_A_PASO.md).
+- [x] Código real de conexión a MySQL en los 5 microservicios con base de datos (CRUD de destinos, alojamiento, gastronomía, experiencias y eventos).

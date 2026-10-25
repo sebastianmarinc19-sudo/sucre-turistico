@@ -9,10 +9,10 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 
 | Tarea | Responsable | Servicio |
 |---|---|---|
-| Inicializar repositorio, estructura de carpetas, docker-compose base | Sebastián | infra |
-| Scaffold API Gateway (Express, rutas base, proxy a servicios) | Sebastián | api-gateway |
-| CRUD `destinos-service` (municipios, playas, atractivos) | Halit | destinos-service |
-| CRUD `alojamiento-service` (hoteles, hostales, posadas) | Jaime | alojamiento-service |
+| ~~Inicializar repositorio, estructura de carpetas, docker-compose base~~ **hecho** | Sebastián | infra |
+| ~~Scaffold API Gateway (Express, rutas base, proxy a servicios)~~ **hecho** | Sebastián | api-gateway |
+| ~~CRUD `destinos-service` (municipios, playas, atractivos)~~ **hecho** | Halit | destinos-service |
+| ~~CRUD `alojamiento-service` (hoteles, hostales, posadas)~~ **hecho** | Jaime | alojamiento-service |
 | ~~Definir esquema de base de datos MySQL (tablas, relaciones)~~ **hecho** — ver [`docs/sql/`](sql/) | Sebastián | — |
 
 ## Sprint 2 — Resto de microservicios + Buscador
@@ -20,9 +20,9 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 
 | Tarea | Responsable | Servicio |
 |---|---|---|
-| CRUD `gastronomia-service` | Halit | gastronomia-service |
-| CRUD `experiencias-service` | Jaime | experiencias-service |
-| CRUD `eventos-service` | Sebastián | eventos-service |
+| ~~CRUD `gastronomia-service`~~ **hecho** | Halit | gastronomia-service |
+| ~~CRUD `experiencias-service`~~ **hecho** | Jaime | experiencias-service |
+| ~~CRUD `eventos-service`~~ **hecho** | Sebastián | eventos-service |
 | Levantar Elasticsearch, definir índice `turismo_index` | Sebastián | buscador-service |
 | Implementar búsqueda full-text y search-as-you-type | Halit + Jaime (pareja) | buscador-service |
 
@@ -32,10 +32,10 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | Tarea | Responsable | Servicio |
 |---|---|---|
 | Implementar facets (municipio, categoría, tipo, precio) | Sebastián | buscador-service |
-| Maquetar páginas React (destinos, hoteles, restaurantes, experiencias, eventos) | Halit | frontend |
-| Conectar React con API Gateway (Axios, manejo de errores/loading) | Jaime | frontend |
-| Reemplazar datos de prueba (mock) por datos reales de la API | Todos | frontend |
-| Pantalla de login + panel de administración (historia 23) | Jaime | frontend |
+| ~~Maquetar páginas React (destinos, hoteles, restaurantes, experiencias, eventos)~~ **hecho** | Halit | frontend |
+| ~~Conectar React con API Gateway (Axios, manejo de errores/loading)~~ **hecho** | Jaime | frontend |
+| ~~Reemplazar datos de prueba (mock) por datos reales de la API~~ **hecho** | Todos | frontend |
+| ~~Pantalla de login + panel de administración (historia 23)~~ **hecho** | Jaime | frontend |
 
 > **Alcance agregado después de la planeación inicial:** el rol Administrador del enunciado. La parte de back-end (login con JWT, protección de escrituras, tabla `usuarios`) ya está hecha en el API Gateway — ver [`AUTENTICACION.md`](AUTENTICACION.md). Lo que queda es la pantalla de login y el panel, que son front-end.
 >
@@ -47,8 +47,8 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | Tarea | Responsable | Servicio |
 |---|---|---|
 | Dockerizar todos los servicios + docker-compose de producción | Sebastián | infra |
-| Desplegar front-end en Vercel | Halit | infra |
-| Desplegar back-end (Gateway + microservicios) en Render/Railway | Jaime | infra |
+| ~~Desplegar front-end en Vercel~~ **hecho** | Halit | infra |
+| ~~Desplegar back-end (Gateway + microservicios) en Render/Railway~~ **hecho** | Jaime | infra |
 | Desplegar Elasticsearch en Elastic Cloud y conectar | Sebastián | infra |
 | Pruebas end-to-end en el entorno desplegado | Todos | — |
 | Documentación técnica final | Todos (una sección c/u) | docs |
