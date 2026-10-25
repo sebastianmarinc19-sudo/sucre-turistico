@@ -20,11 +20,6 @@ const CATEGORIAS = {
 // Debe coincidir con POR_PAGINA de buscador-service (src/consultas.js).
 const POR_PAGINA = 20;
 
-const SECCIONES = {
-  destino: 'Destinos', alojamiento: 'Alojamiento', restaurante: 'Gastronomía',
-  experiencia: 'Experiencias', evento: 'Eventos',
-};
-
 const FACETS = [
   { clave: 'tipo', titulo: 'Tipo', etiqueta: (v) => TIPOS[v] || v },
   { clave: 'municipio', titulo: 'Municipio', etiqueta: (v) => v },
@@ -77,7 +72,8 @@ function Resultado({ r }) {
           {r.descripcion && <p className="st-card-desc">{r.descripcion}</p>}
         </div>
         <div className="st-card-footer">
-          <Link to={r.ruta}>Ver en {SECCIONES[r.tipo]} <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+          {/* Indices viejos pueden no traer ref_id: entonces se va a la seccion. */}
+          <Link to={r.ref_id ? `${r.ruta}/${r.ref_id}` : r.ruta}>Ver detalle <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
           {r.precio != null && <span className="st-precio">${Number(r.precio).toLocaleString('es-CO')}</span>}
         </div>
       </article>

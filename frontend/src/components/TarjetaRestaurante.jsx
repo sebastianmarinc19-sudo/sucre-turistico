@@ -1,29 +1,18 @@
+import { Link } from 'react-router-dom';
+import { categoriaDe, etiquetaDe, RANGOS_PRECIO, rutaDetalle } from '../catalogo';
 import { imagenDe } from '../imagenes';
+import Columna from './Columna';
 
-const ETIQUETAS_COCINA = {
-  tipica: 'Típica',
-  mariscos: 'Mariscos',
-  internacional: 'Internacional',
-  comida_rapida: 'Comida rápida',
-  vegetariana: 'Vegetariana',
-};
-
-const ETIQUETAS_PRECIO = {
-  economico: { simbolo: '$', texto: 'Económico' },
-  medio: { simbolo: '$$', texto: 'Precio medio' },
-  alto: { simbolo: '$$$', texto: 'Precio alto' },
-};
-
-function TarjetaRestaurante({ restaurante }) {
-  const { nombre, municipio, tipo_cocina, descripcion, rango_precio, direccion, telefono } = restaurante;
-  const precio = ETIQUETAS_PRECIO[rango_precio];
+function TarjetaRestaurante({ restaurante, columna }) {
+  const { nombre, municipio, descripcion, rango_precio, direccion, telefono } = restaurante;
+  const precio = RANGOS_PRECIO[rango_precio];
 
   return (
-    <div className="col-12 col-sm-6 col-lg-4 col-xl-3">
-      <article className="st-card">
+    <Columna clase={columna}>
+      <Link to={rutaDetalle('gastronomia', restaurante)} className="st-card">
         <div className="st-card-img">
-          <img src={imagenDe(restaurante, tipo_cocina)} alt={nombre} loading="lazy" />
-          {tipo_cocina && <span className="st-badge">{ETIQUETAS_COCINA[tipo_cocina] || tipo_cocina}</span>}
+          <img src={imagenDe(restaurante, categoriaDe('gastronomia', restaurante))} alt="" loading="lazy" />
+          <span className="st-badge">{etiquetaDe('gastronomia', restaurante)}</span>
         </div>
         <div className="st-card-body">
           <h3 className="st-card-title">{nombre}</h3>
@@ -42,8 +31,8 @@ function TarjetaRestaurante({ restaurante }) {
             <span className="st-precio">{precio.simbolo}</span>
           </div>
         )}
-      </article>
-    </div>
+      </Link>
+    </Columna>
   );
 }
 

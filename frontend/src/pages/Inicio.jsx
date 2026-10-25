@@ -1,22 +1,23 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { IMAGEN_HERO } from '../imagenes';
+import { TarjetasEsqueleto } from '../components/Cargando';
+import Carrusel from '../components/Carrusel';
 import TarjetaDestino from '../components/TarjetaDestino';
 import TarjetaEvento from '../components/TarjetaEvento';
+import { hoy } from '../fechas';
+
+// Leaflet pesa: el mapa se descarga aparte, sin demorar el resto del inicio.
+const MapaMunicipios = lazy(() => import('../components/MapaMunicipios'));
 
 const CATEGORIAS = [
-  { clave: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', icono: 'fa-map-location-dot', color: 'azul', unidad: 'destinos', tipoBuscador: 'destino' },
-  { clave: 'alojamientos', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', icono: 'fa-hotel', color: 'cian', unidad: 'alojamientos', tipoBuscador: 'alojamiento' },
-  { clave: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', icono: 'fa-utensils', color: 'naranja', unidad: 'restaurantes', tipoBuscador: 'restaurante' },
-  { clave: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', icono: 'fa-person-hiking', color: 'morado', unidad: 'actividades', tipoBuscador: 'experiencia' },
-  { clave: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', icono: 'fa-calendar-days', color: 'verde', unidad: 'eventos', tipoBuscador: 'evento' },
+  { clave: 'destinos', seccion: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', icono: 'fa-map-location-dot', color: 'azul', unidad: 'destinos', tipoBuscador: 'destino' },
+  { clave: 'alojamientos', seccion: 'alojamiento', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', icono: 'fa-hotel', color: 'cian', unidad: 'alojamientos', tipoBuscador: 'alojamiento' },
+  { clave: 'gastronomia', seccion: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', icono: 'fa-utensils', color: 'naranja', unidad: 'restaurantes', tipoBuscador: 'restaurante' },
+  { clave: 'experiencias', seccion: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', icono: 'fa-person-hiking', color: 'morado', unidad: 'actividades', tipoBuscador: 'experiencia' },
+  { clave: 'eventos', seccion: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', icono: 'fa-calendar-days', color: 'verde', unidad: 'eventos', tipoBuscador: 'evento' },
 ];
-
-function hoy() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 function Inicio() {
   const navigate = useNavigate();
@@ -47,6 +48,10 @@ function Inicio() {
   const cantidad = (clave) => (Array.isArray(listas[clave]) ? listas[clave].length : '—');
   const destinos = listas.destinos;
   const eventos = listas.eventos;
+  // Todo lo que ya llego, para el mapa: cada seccion se suma al llegar.
+  const lugares = CATEGORIAS.flatMap((c) => (Array.isArray(listas[c.clave]) ? listas[c.clave].map((registro) => ({ seccion: c.seccion, registro })) : []));
+  const mapaListo = CATEGORIAS.every((c) => listas[c.clave] !== undefined);
+  const mapaVacio = <div className="st-mapa st-esqueleto" style={{ height: 460 }} aria-hidden="true" />;
 
   return (
     <>
@@ -105,13 +110,29 @@ function Inicio() {
             </div>
             <Link to="/destinos" className="btn btn-outline-primary btn-sm">Ver todos <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
           </div>
-          {destinos === undefined && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Cargando…</span></div></div>}
+          {destinos === undefined && <TarjetasEsqueleto />}
           {destinos === null && <p className="text-muted">No se pudieron cargar los destinos en este momento.</p>}
           {Array.isArray(destinos) && (
-            <div className="row g-4">
-              {destinos.slice(0, 4).map((d) => <TarjetaDestino key={d.id} destino={d} />)}
-            </div>
+            <Carrusel etiqueta="Destinos destacados">
+              {destinos.map((d) => <TarjetaDestino key={d.id} destino={d} columna={null} />)}
+            </Carrusel>
           )}
+        </div>
+      </section>
+
+      <section className="st-seccion">
+        <div className="container">
+          <div className="st-seccion-titulo">
+            <div>
+              <h2>Explora el mapa</h2>
+              <p>Cada círculo es un municipio: entre más grande, más para hacer. Tócalo para ver qué hay.</p>
+            </div>
+          </div>
+          {/* El mapa espera a que respondan las cinco secciones: si se monta
+              antes, se encuadra solo con las primeras que llegaron. */}
+          <Suspense fallback={mapaVacio}>
+            {mapaListo ? <MapaMunicipios lugares={lugares} alto={460} /> : mapaVacio}
+          </Suspense>
         </div>
       </section>
 

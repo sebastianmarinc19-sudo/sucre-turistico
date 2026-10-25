@@ -65,12 +65,20 @@ app.get('/api/gastronomia/catalogos/municipios', async (req, res) => {
   }
 });
 
-// Obtener un restaurante por id
+// Obtener un restaurante por id, con su carta de platos (historia 7: "consultar
+// restaurantes y platos tipicos"). Es la relacion 1-a-muchos del esquema; la
+// lista general no los trae para no pesar.
 app.get('/api/gastronomia/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`${SELECT_BASE} WHERE r.id = ? AND r.activo = TRUE`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Restaurante no encontrado' });
-    res.json(rows[0]);
+    const [platos] = await pool.query(
+      `SELECT id, nombre, descripcion, precio, es_tipico
+       FROM platos WHERE restaurante_id = ?
+       ORDER BY es_tipico DESC, nombre`,
+      [req.params.id]
+    );
+    res.json({ ...rows[0], platos });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

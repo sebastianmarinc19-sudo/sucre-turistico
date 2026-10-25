@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
 import Encabezado from './components/Encabezado';
 import PiePagina from './components/PiePagina';
@@ -8,9 +8,14 @@ import Alojamiento from './pages/Alojamiento';
 import Gastronomia from './pages/Gastronomia';
 import Experiencias from './pages/Experiencias';
 import Eventos from './pages/Eventos';
-import Buscador from './pages/Buscador';
-import Login from './admin/Login';
-import Panel from './admin/Panel';
+import { CATALOGO } from './catalogo';
+
+// Se descargan solo al entrar: el detalle trae el mapa (Leaflet) y el
+// carrusel, y el turista casi nunca abre el buscador avanzado ni el panel.
+const Buscador = lazy(() => import('./pages/Buscador'));
+const Detalle = lazy(() => import('./pages/Detalle'));
+const Login = lazy(() => import('./admin/Login'));
+const Panel = lazy(() => import('./admin/Panel'));
 
 function NoEncontrada() {
   return (
@@ -30,7 +35,15 @@ function ArribaAlNavegar() {
   return null;
 }
 
-const enContenedor = (elemento) => <div className="container py-4">{elemento}</div>;
+function CargandoPagina() {
+  return (
+    <div className="container py-5 text-center">
+      <div className="spinner-border" role="status"><span className="visually-hidden">Cargando…</span></div>
+    </div>
+  );
+}
+
+const enContenedor =(elemento) => <div className="container py-4">{elemento}</div>;
 
 function App() {
   return (
@@ -38,19 +51,24 @@ function App() {
       <ArribaAlNavegar />
       <Encabezado />
       <main className="st-main">
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/destinos" element={<Destinos />} />
-          <Route path="/alojamiento" element={<Alojamiento />} />
-          <Route path="/gastronomia" element={<Gastronomia />} />
-          <Route path="/experiencias" element={<Experiencias />} />
-          <Route path="/eventos" element={<Eventos />} />
-          <Route path="/buscar" element={<Buscador />} />
-          <Route path="/admin/login" element={enContenedor(<Login />)} />
-          <Route path="/admin" element={enContenedor(<Panel />)} />
-          <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
-          <Route path="*" element={<NoEncontrada />} />
-        </Routes>
+        <Suspense fallback={<CargandoPagina />}>
+          <Routes>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/destinos" element={<Destinos />} />
+            <Route path="/alojamiento" element={<Alojamiento />} />
+            <Route path="/gastronomia" element={<Gastronomia />} />
+            <Route path="/experiencias" element={<Experiencias />} />
+            <Route path="/eventos" element={<Eventos />} />
+            {Object.entries(CATALOGO).map(([seccion, { ruta }]) => (
+              <Route key={seccion} path={`${ruta}/:id`} element={<Detalle seccion={seccion} />} />
+            ))}
+            <Route path="/buscar" element={<Buscador />} />
+            <Route path="/admin/login" element={enContenedor(<Login />)} />
+            <Route path="/admin" element={enContenedor(<Panel />)} />
+            <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
+            <Route path="*" element={<NoEncontrada />} />
+          </Routes>
+        </Suspense>
       </main>
       <PiePagina />
     </BrowserRouter>

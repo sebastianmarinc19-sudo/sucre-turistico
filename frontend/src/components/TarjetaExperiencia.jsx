@@ -1,22 +1,17 @@
+import { Link } from 'react-router-dom';
+import { categoriaDe, etiquetaDe, pesos, rutaDetalle } from '../catalogo';
 import { imagenDe } from '../imagenes';
+import Columna from './Columna';
 
-const ETIQUETAS_TIPO = {
-  acuatica: 'Acuática',
-  cultural: 'Cultural',
-  ecoturismo: 'Ecoturismo',
-  aventura: 'Aventura',
-  gastronomica: 'Gastronómica',
-};
-
-function TarjetaExperiencia({ experiencia }) {
-  const { nombre, municipio, tipo, descripcion, precio, duracion_horas, operador } = experiencia;
+function TarjetaExperiencia({ experiencia, columna }) {
+  const { nombre, municipio, descripcion, precio, duracion_horas, operador } = experiencia;
 
   return (
-    <div className="col-12 col-sm-6 col-lg-4 col-xl-3">
-      <article className="st-card">
+    <Columna clase={columna}>
+      <Link to={rutaDetalle('experiencias', experiencia)} className="st-card">
         <div className="st-card-img">
-          <img src={imagenDe(experiencia, tipo)} alt={nombre} loading="lazy" />
-          {tipo && <span className="st-badge">{ETIQUETAS_TIPO[tipo] || tipo}</span>}
+          <img src={imagenDe(experiencia, categoriaDe('experiencias', experiencia))} alt="" loading="lazy" />
+          <span className="st-badge">{etiquetaDe('experiencias', experiencia)}</span>
         </div>
         <div className="st-card-body">
           <h3 className="st-card-title">{nombre}</h3>
@@ -28,10 +23,10 @@ function TarjetaExperiencia({ experiencia }) {
           <span>
             {duracion_horas != null && <><i className="fas fa-clock" aria-hidden="true" /> {Number(duracion_horas).toLocaleString('es-CO')} h</>}
           </span>
-          {precio != null && <span className="st-precio">${Number(precio).toLocaleString('es-CO')}<small>/persona</small></span>}
+          {precio != null && <span className="st-precio">{pesos(precio)}<small>/persona</small></span>}
         </div>
-      </article>
-    </div>
+      </Link>
+    </Columna>
   );
 }
 
