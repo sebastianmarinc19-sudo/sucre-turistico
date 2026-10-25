@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api, { mensajeDeError } from '../api/client';
+import EncabezadoPagina from '../components/EncabezadoPagina';
+import { imagenDe } from '../imagenes';
 
 const TIPOS = {
   destino: 'Destino', alojamiento: 'Alojamiento', restaurante: 'Restaurante',
@@ -61,21 +63,22 @@ function Sugerencias({ texto, onElegir }) {
 
 function Resultado({ r }) {
   return (
-    <div className="col-12 col-md-6">
-      <article className="card h-100 shadow-sm">
-        <div className="card-body d-flex flex-column">
-          <p className="small mb-1">
-            <span className="badge text-bg-secondary">{TIPOS[r.tipo] || r.tipo}</span>
-            {r.categoria && <span className="badge text-bg-light ms-1">{CATEGORIAS[r.categoria] || r.categoria}</span>}
+    <div className="col-12 col-md-6 col-xl-4">
+      <article className="st-card">
+        <div className="st-card-img" style={{ height: '150px' }}>
+          <img src={imagenDe(r, r.categoria)} alt={r.nombre} loading="lazy" />
+          <span className="st-badge">{TIPOS[r.tipo] || r.tipo}</span>
+        </div>
+        <div className="st-card-body">
+          <h3 className="st-card-title">{r.nombre}</h3>
+          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {r.municipio}
+            {r.categoria && <span className="ms-2">· {CATEGORIAS[r.categoria] || r.categoria}</span>}
           </p>
-          <h3 className="card-title h6 mb-1">{r.nombre}</h3>
-          <p className="text-muted small mb-2">
-            {r.municipio}
-            {r.fecha_inicio && ` · desde ${r.fecha_inicio}`}
-            {r.precio != null && ` · $${Number(r.precio).toLocaleString('es-CO')}`}
-          </p>
-          {r.descripcion && <p className="card-text small mb-2">{r.descripcion}</p>}
-          <Link to={r.ruta} className="small mt-auto">Ver en {SECCIONES[r.tipo]} →</Link>
+          {r.descripcion && <p className="st-card-desc">{r.descripcion}</p>}
+        </div>
+        <div className="st-card-footer">
+          <Link to={r.ruta}>Ver en {SECCIONES[r.tipo]} <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+          {r.precio != null && <span className="st-precio">${Number(r.precio).toLocaleString('es-CO')}</span>}
         </div>
       </article>
     </div>
@@ -132,11 +135,9 @@ function Buscador() {
   const paginas = datos ? Math.ceil(datos.total / POR_PAGINA) : 0;
 
   return (
-    <section>
-      <header className="mb-3">
-        <h2 className="h3">Buscar en todo Sucre Turístico</h2>
-        <p className="text-muted">Destinos, alojamientos, restaurantes, experiencias y eventos en un solo lugar.</p>
-      </header>
+    <>
+    <EncabezadoPagina titulo="Buscar" descripcion="Destinos, alojamientos, restaurantes, experiencias y eventos en un solo lugar." />
+    <section className="container">
 
       <form className="mb-4" role="search" onSubmit={(e) => { e.preventDefault(); buscar(texto); }}>
         <div className="position-relative">
@@ -211,6 +212,7 @@ function Buscador() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 

@@ -40,7 +40,7 @@ const CONFIGURACION = {
 // Se consulta la API de cada microservicio, no su tabla: el buscador no
 // conoce la base de datos de los demas.
 const FUENTES = [
-  { tipo: 'destino', url: process.env.DESTINOS_URL || 'http://localhost:4001', ruta: '/api/destinos', pagina: '/', categoria: 'categoria', precio: null },
+  { tipo: 'destino', url: process.env.DESTINOS_URL || 'http://localhost:4001', ruta: '/api/destinos', pagina: '/destinos', categoria: 'categoria', precio: null },
   { tipo: 'alojamiento', url: process.env.ALOJAMIENTO_URL || 'http://localhost:4002', ruta: '/api/alojamientos', pagina: '/alojamiento', categoria: 'tipo', precio: 'precio_noche' },
   { tipo: 'restaurante', url: process.env.GASTRONOMIA_URL || 'http://localhost:4003', ruta: '/api/gastronomia', pagina: '/gastronomia', categoria: 'tipo_cocina', precio: null },
   { tipo: 'experiencia', url: process.env.EXPERIENCIAS_URL || 'http://localhost:4004', ruta: '/api/experiencias', pagina: '/experiencias', categoria: 'tipo', precio: 'precio' },
