@@ -11,7 +11,7 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 | API Gateway | https://sucre-turistico.onrender.com/health |
 | Panel de administración | https://sucre-turistico-frontend.vercel.app/admin |
 
-Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. Pendiente: el buscador con Elasticsearch y sus facets (ver [`docs/SPRINT_PLAN.md`](docs/SPRINT_PLAN.md)).
+Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. El buscador (full-text, autocompletado y facets con Elasticsearch) está hecho y probado en local; falta desplegarlo en Elastic Cloud, a propósito poco antes de la entrega por los 14 días gratis (ver [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
 
 Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minuto y deja los servicios despiertos (los gratis de Render se duermen tras 15 min).
 
