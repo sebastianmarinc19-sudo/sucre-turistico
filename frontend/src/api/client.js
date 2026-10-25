@@ -26,7 +26,10 @@ const MAX_REINTENTOS = 12;
 
 api.interceptors.response.use(undefined, async (error) => {
   const { config, response } = error;
-  const reintentable = config?.method === 'get' && ESTADOS_REINTENTABLES.includes(response?.status);
+  // Solo los errores de Render (texto o HTML): si el error trae un mensaje
+  // JSON es de nuestro propio servicio, y reintentar no lo va a cambiar.
+  const deNuestroServicio = typeof response?.data?.error === 'string';
+  const reintentable = config?.method === 'get' && ESTADOS_REINTENTABLES.includes(response?.status) && !deNuestroServicio;
   if (!reintentable) throw error;
   config.__reintentos = (config.__reintentos || 0) + 1;
   if (config.__reintentos > MAX_REINTENTOS) throw error;
@@ -61,7 +64,7 @@ export function mensajeDeError(error) {
   if (error.response.status === 401) {
     return 'Necesitas iniciar sesion como administrador para hacer esto.';
   }
-  if (ESTADOS_REINTENTABLES.includes(error.response.status)) {
+  if (ESTADOS_REINTENTABLES.includes(error.response.status) && !error.response.data?.error) {
     return 'El servidor se esta iniciando. Recarga la pagina en un momento.';
   }
   return error.response.data?.error || `Error ${error.response.status} del servidor.`;

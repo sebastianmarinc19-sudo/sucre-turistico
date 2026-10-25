@@ -101,7 +101,7 @@ function Buscador() {
       .then(({ data }) => { if (!cancelado) { setDatos(data); setError(null); } })
       .catch((err) => {
         if (cancelado) return;
-        setError(err.response?.status === 503 ? 'El buscador todavía no tiene datos. Intenta en un momento.' : mensajeDeError(err));
+        setError(mensajeDeError(err));
       })
       .finally(() => { if (!cancelado) setCargando(false); });
     return () => { cancelado = true; };
