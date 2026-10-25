@@ -1,3 +1,5 @@
+import { imagenDe } from '../imagenes';
+
 const ETIQUETAS_TIPO = {
   hotel: 'Hotel',
   hostal: 'Hostal',
@@ -7,37 +9,31 @@ const ETIQUETAS_TIPO = {
 };
 
 function TarjetaAlojamiento({ alojamiento }) {
-  const { nombre, municipio, tipo, descripcion, imagen_url, precio_noche, capacidad, estrellas, servicios } = alojamiento;
+  const { nombre, municipio, tipo, descripcion, precio_noche, capacidad, estrellas, servicios } = alojamiento;
 
   return (
-    <div className="col-12 col-md-6 col-lg-4">
-      <article className="card h-100 shadow-sm">
-        {imagen_url && (
-          <img
-            src={imagen_url}
-            className="card-img-top"
-            alt={nombre}
-            style={{ height: '180px', objectFit: 'cover' }}
-          />
-        )}
-        <div className="card-body d-flex flex-column">
-          <h3 className="card-title h5">{nombre}</h3>
-          <p className="text-muted small mb-2">
-            {municipio}
-            {tipo && <span className="badge text-bg-light ms-2">{ETIQUETAS_TIPO[tipo] || tipo}</span>}
-            {estrellas > 0 && <span className="ms-2" aria-label={`${estrellas} estrellas`}>{'★'.repeat(estrellas)}</span>}
-          </p>
-          {descripcion && <p className="card-text small">{descripcion}</p>}
+    <div className="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <article className="st-card">
+        <div className="st-card-img">
+          <img src={imagenDe(alojamiento, tipo)} alt={nombre} loading="lazy" />
+          {tipo && <span className="st-badge">{ETIQUETAS_TIPO[tipo] || tipo}</span>}
+        </div>
+        <div className="st-card-body">
+          <h3 className="st-card-title">{nombre}</h3>
+          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {municipio}, Sucre</p>
+          {descripcion && <p className="st-card-desc">{descripcion}</p>}
           {Array.isArray(servicios) && servicios.length > 0 && (
-            <p className="small text-muted mb-2">{servicios.map((s) => s.replace(/_/g, ' ')).join(' · ')}</p>
+            <p className="st-card-extra">{servicios.map((s) => s.replace(/_/g, ' ')).join(' · ')}</p>
           )}
-          <p className="mt-auto mb-0 small">
-            {precio_noche != null && (
-              <strong>${Number(precio_noche).toLocaleString('es-CO')}</strong>
-            )}
-            {precio_noche != null && <span className="text-muted"> / noche</span>}
-            {capacidad && <span className="text-muted"> · hasta {capacidad} personas</span>}
-          </p>
+        </div>
+        <div className="st-card-footer">
+          <span>
+            {estrellas > 0 && <span className="st-estrellas" aria-label={`${estrellas} estrellas`}>{'★'.repeat(estrellas)}</span>}
+            {capacidad && <span className="ms-2"><i className="fas fa-user-group" aria-hidden="true" /> {capacidad}</span>}
+          </span>
+          {precio_noche != null && (
+            <span className="st-precio">${Number(precio_noche).toLocaleString('es-CO')}<small>/noche</small></span>
+          )}
         </div>
       </article>
     </div>

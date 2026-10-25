@@ -31,23 +31,21 @@ Vite **solo** expone al navegador las variables que empiezan por `VITE_`. Una va
 
 ```
 src/
-├── api/
-│   └── client.js           # Axios configurado + traducción de errores
-├── components/             # Tarjeta* — solo presentan, reciben datos por props
-│   ├── TarjetaDestino.jsx
-│   ├── TarjetaAlojamiento.jsx
-│   ├── TarjetaRestaurante.jsx
-│   ├── TarjetaExperiencia.jsx
-│   └── TarjetaEvento.jsx
-├── pages/                  # una por sección: filtros + llamada a la API
-│   ├── Destinos.jsx
-│   ├── Alojamiento.jsx
-│   ├── Gastronomia.jsx
-│   ├── Experiencias.jsx
-│   └── Eventos.jsx
-├── App.jsx                 # rutas y navegación
-└── main.jsx                # punto de entrada
+├── index.css               # sistema de diseño del prototipo (colores, tipografías, componentes st-*)
+├── imagenes.js             # foto de respaldo por categoría cuando un registro no tiene imagen
+├── secciones.js            # las 5 secciones del menú
+├── api/                    # client.js (Axios + reintentos), sesion.js, despertar.js
+├── components/
+│   ├── Encabezado.jsx, PiePagina.jsx, Logo.jsx, EncabezadoPagina.jsx
+│   ├── Chips.jsx, EstadoLista.jsx, useCatalogo.js
+│   └── Tarjeta*.jsx        # una por catálogo, solo presentan datos
+├── pages/                  # Inicio, Destinos, Alojamiento, Gastronomia, Experiencias, Eventos, Buscador
+├── admin/                  # login y panel de administración
+├── App.jsx                 # rutas
+└── main.jsx
 ```
+
+El diseño sigue el prototipo de interfaz (`mokud/`): mismos colores, tipografías (Poppins e Inter), íconos (Font Awesome) y componentes. Los estilos propios llevan el prefijo `st-` para no chocar con los de Bootstrap, que sigue haciendo la grilla y los formularios.
 
 ## El patrón a seguir
 
