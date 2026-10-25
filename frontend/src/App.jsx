@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Destinos from './pages/Destinos';
 import Alojamiento from './pages/Alojamiento';
 import Gastronomia from './pages/Gastronomia';
+import Experiencias from './pages/Experiencias';
 import Eventos from './pages/Eventos';
 
 // AVISO TEMPORAL — BORRAR antes de la entrega final y de grabar la videomemoria.
@@ -69,7 +70,7 @@ function App() {
           <Route path="/" element={<Destinos />} />
           <Route path="/alojamiento" element={<Alojamiento />} />
           <Route path="/gastronomia" element={<Gastronomia />} />
-          <Route path="/experiencias" element={<EnConstruccion titulo="Experiencias" />} />
+          <Route path="/experiencias" element={<Experiencias />} />
           <Route path="/eventos" element={<Eventos />} />
           <Route path="*" element={<EnConstruccion titulo="Pagina no encontrada" />} />
         </Routes>
