@@ -34,6 +34,18 @@ Todo lo anterior corre en planes **$0/mes**, sin tarjeta.
   - No sirve mantenerlos despiertos con un ping periódico: el plan free da 750 horas/mes para todos los servicios juntos, y 7 servicios encendidos todo el mes son ~5.000.
 - El API Gateway tiene las URLs de los 6 microservicios cargadas como variables de entorno (`DESTINOS_URL`, `ALOJAMIENTO_URL`, etc.) — el proxy ya fue probado y funciona end-to-end.
 
+#### `GATEWAY_SECRET`: que nadie se salte el login
+Cada microservicio tiene su propia URL pública en Render, y el token de administrador solo lo revisa el gateway. Sin protección, cualquiera podría crear o borrar datos llamando directo a `https://sucre-turistico-destinos-service.onrender.com/api/destinos`.
+
+Por eso el gateway manda la cabecera `X-Gateway-Secret` en todo lo que reenvía, y cada servicio ([`src/solo-gateway.js`](../services/destinos-service/src/solo-gateway.js)) rechaza las escrituras que no la traen: **403**, o **503** si al servicio le falta la variable. Los GET siguen siendo públicos.
+
+Configuración en Render (una sola vez):
+1. Generar un valor: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+2. **Environment Groups → New** → nombre `gateway-secret`, variable `GATEWAY_SECRET` = ese valor.
+3. Enlazar el grupo a los **7 servicios**: el gateway y los 6 microservicios. Render los redespliega solo.
+
+Si falta en algún servicio, el panel de administración no puede guardar en esa sección: el mensaje de error dice exactamente qué variable falta.
+
 ### Base de datos → TiDB Cloud (MySQL-compatible)
 Se eligió TiDB Cloud Starter en vez de Railway (pide tarjeta) o db4free.net (dominio comprometido/redirige a un sitio sospechoso — no usar) porque:
 - Es 100% gratis (5GiB storage, 50M request units/mes), sin tarjeta.
@@ -71,6 +83,7 @@ Pide la contraseña de TiDB sin mostrarla, aplica los archivos **en este orden**
 | [`02-municipios.sql`](sql/02-municipios.sql) | ✅ aplicado |
 | [`03-catalogo.sql`](sql/03-catalogo.sql) | ✅ aplicado |
 | [`04-datos-ejemplo.sql`](sql/04-datos-ejemplo.sql) | ✅ aplicado (datos de demo) |
+| [`05-mas-datos.sql`](sql/05-mas-datos.sql) | ✅ aplicado (segunda tanda de demo; idempotente, se aplica siempre) |
 
 El orden importa: `03` tiene llaves foráneas hacia `municipios`, así que `02` va primero.
 - **En local (docker-compose) sigue usando el MySQL del contenedor**, no la nube — son ambientes separados a propósito, para no gastar la cuota gratis de TiDB con pruebas locales.
@@ -111,6 +124,7 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] Base de datos MySQL (TiDB Cloud) creada y enlazada.
 - [x] `VITE_API_URL` en Vercel apuntando al backend.
 - [x] `JWT_SECRET` en el API Gateway.
+- [ ] `GATEWAY_SECRET` en el gateway y los 6 microservicios (Environment Group `gateway-secret`, pasos arriba).
 - [x] Tabla `usuarios` creada en TiDB.
 - [x] Esquema del catálogo definido y compartido (`docs/sql/02`, `03`, `04`).
 - [x] Aplicar `02`, `03` y `04` en TiDB.

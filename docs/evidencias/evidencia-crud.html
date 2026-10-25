@@ -40,10 +40,16 @@ function sectionTitle(text) {
   out.appendChild(h);
 }
 
-async function call(method, url, body, note) {
+// Las escrituras directas a un microservicio exigen el secreto que normalmente
+// pone el API Gateway (GATEWAY_SECRET). Este es el valor de desarrollo de
+// docker-compose.yml; en produccion es otro y no se publica.
+const SECRETO_LOCAL = 'desarrollo-gateway-no-usar-en-produccion';
+
+async function call(method, url, body, note, conSecreto = true) {
   const card = document.createElement('div');
   card.className = 'card';
   const opts = { method, headers: {} };
+  if (conSecreto && !url.includes(':4000')) opts.headers['X-Gateway-Secret'] = SECRETO_LOCAL;
   if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   let status, text;
   try {
@@ -111,6 +117,7 @@ async function call(method, url, body, note) {
   await call('GET', 'http://localhost:4000/health');
   await call('GET', 'http://localhost:4000/api/destinos', null, 'Lectura pública a través del Gateway — debe responder igual que el servicio directo');
   await call('POST', 'http://localhost:4000/api/destinos', {}, 'Sin token de administrador — 401 esperado (protección de escrituras funcionando)');
+  await call('POST', 'http://localhost:4001/api/destinos', {}, 'Directo al microservicio, sin pasar por el Gateway — 403 esperado (GATEWAY_SECRET: no se puede saltar el login)', false);
 })();
 </script>
 </body>

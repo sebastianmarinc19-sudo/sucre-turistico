@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const soloGateway = require('./solo-gateway');
 const pool = require('./db');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(soloGateway);
 
 const PORT = process.env.PORT || 4004;
 

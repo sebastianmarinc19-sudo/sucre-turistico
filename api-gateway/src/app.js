@@ -18,9 +18,25 @@ function buildRoutes(env = process.env) {
   };
 }
 
+// Cabecera con la que los microservicios reconocen que una escritura viene del
+// gateway (ver services/*/src/solo-gateway.js). Reemplaza cualquier valor que
+// mande el cliente, asi que no se puede falsificar desde afuera.
+function cabecerasHaciaServicios(env = process.env) {
+  if (!env.GATEWAY_SECRET) {
+    console.warn(
+      '[api-gateway] AVISO: falta la variable GATEWAY_SECRET.\n' +
+      '  Los microservicios van a rechazar las escrituras (crear, editar, borrar).'
+    );
+    // Vacia, para pisar igual la que pudiera mandar el cliente.
+    return { 'x-gateway-secret': '' };
+  }
+  return { 'x-gateway-secret': env.GATEWAY_SECRET };
+}
+
 // `usuariosRepo` se puede inyectar para poder probar la autenticacion sin base de datos.
 function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
   avisarSiFaltaConfiguracion();
+  const headers = cabecerasHaciaServicios();
 
   const app = express();
   app.use(cors());
@@ -36,7 +52,7 @@ function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
   // Express recorta la ruta de montaje, asi que con la segunda forma el microservicio
   // recibia "/" en vez de "/api/destinos" y respondia 404 a todo el CRUD.
   Object.entries(routes).forEach(([path, target]) => {
-    app.use(createProxyMiddleware({ pathFilter: path, target, changeOrigin: true }));
+    app.use(createProxyMiddleware({ pathFilter: path, target, changeOrigin: true, headers }));
   });
 
   app.get('/health', (req, res) => {

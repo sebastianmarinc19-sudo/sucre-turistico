@@ -150,6 +150,9 @@ El gateway arranca igual y el catálogo funciona, pero el login y las escrituras
 rm api-gateway/.env services/*/.env && npm run setup
 ```
 
+**Al guardar en el panel sale "falta la variable GATEWAY_SECRET" (`503`) o "solo se aceptan a traves del API Gateway" (`403`).**
+Los microservicios solo aceptan escrituras que vengan del gateway con el mismo `GATEWAY_SECRET` (ver [`DEPLOYMENT.md`](DEPLOYMENT.md)). Tus `.env` son anteriores a ese cambio: mismo arreglo del punto anterior. Y si probabas con Postman directo contra `localhost:4001`, ahora las escrituras van por el gateway (`localhost:4000`) con token.
+
 **Los puertos salen todos en 4000 y chocan entre sí.**
 Tus `.env` son de una versión vieja del repo. Mismo arreglo del punto anterior: bórralos y regenéralos. `npm run setup` **no** pisa los `.env` que ya existen.
 
