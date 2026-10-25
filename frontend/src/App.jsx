@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Destinos from './pages/Destinos';
+import Eventos from './pages/Eventos';
 
 // AVISO TEMPORAL — BORRAR antes de la entrega final y de grabar la videomemoria.
 // Esta aqui para que quien clone el repo entienda de una que el proyecto esta
@@ -67,7 +68,7 @@ function App() {
           <Route path="/alojamiento" element={<EnConstruccion titulo="Alojamiento" />} />
           <Route path="/gastronomia" element={<EnConstruccion titulo="Gastronomia" />} />
           <Route path="/experiencias" element={<EnConstruccion titulo="Experiencias" />} />
-          <Route path="/eventos" element={<EnConstruccion titulo="Eventos" />} />
+          <Route path="/eventos" element={<Eventos />} />
           <Route path="*" element={<EnConstruccion titulo="Pagina no encontrada" />} />
         </Routes>
       </main>
