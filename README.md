@@ -10,6 +10,7 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 | Sebastián | Scrum Master  |
 | Halit     | Equipo de desarrollo |
 | Jaime     | Equipo de desarrollo |
+| Wilinton  | Equipo de desarrollo |
 
 ## Documentos del proyecto
 
