@@ -54,14 +54,21 @@ Configuración:
   ```
 - Para ver o rotar la contraseña: [tidbcloud.com](https://tidbcloud.com) → cluster `sucre-turistico-db` → Connect.
 
-**El esquema hay que aplicarlo a mano.** En local, docker-compose ejecuta los archivos de `docs/sql/` solo; en TiDB no. Desde el SQL Editor de TiDB Cloud, pegar y ejecutar **en este orden**:
+**El esquema hay que aplicarlo a mano.** En local, docker-compose ejecuta los archivos de `docs/sql/` solo; en TiDB no. Desde la raíz del repo:
+
+```bash
+node scripts/aplicar-esquema.js              # tablas + datos de ejemplo
+node scripts/aplicar-esquema.js --sin-datos  # solo tablas
+```
+
+Pide la contraseña de TiDB sin mostrarla, aplica los archivos **en este orden** y muestra cuántas filas quedan en cada tabla. Se puede correr varias veces sin duplicar nada (`04` se salta si `destinos` ya tiene filas). La alternativa es pegarlos uno por uno en el SQL Editor de TiDB Cloud, en el mismo orden:
 
 | Archivo | Estado en producción |
 |---|---|
 | [`01-usuarios.sql`](sql/01-usuarios.sql) | ✅ aplicado |
-| [`02-municipios.sql`](sql/02-municipios.sql) | ⏳ pendiente |
-| [`03-catalogo.sql`](sql/03-catalogo.sql) | ⏳ pendiente |
-| [`04-datos-ejemplo.sql`](sql/04-datos-ejemplo.sql) | ⏳ pendiente (opcional: son datos de demo) |
+| [`02-municipios.sql`](sql/02-municipios.sql) | ✅ aplicado |
+| [`03-catalogo.sql`](sql/03-catalogo.sql) | ✅ aplicado |
+| [`04-datos-ejemplo.sql`](sql/04-datos-ejemplo.sql) | ✅ aplicado (datos de demo) |
 
 El orden importa: `03` tiene llaves foráneas hacia `municipios`, así que `02` va primero.
 - **En local (docker-compose) sigue usando el MySQL del contenedor**, no la nube — son ambientes separados a propósito, para no gastar la cuota gratis de TiDB con pruebas locales.
@@ -85,7 +92,7 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] `JWT_SECRET` en el API Gateway.
 - [x] Tabla `usuarios` creada en TiDB.
 - [x] Esquema del catálogo definido y compartido (`docs/sql/02`, `03`, `04`).
-- [ ] Aplicar `02`, `03` y `04` en TiDB.
+- [x] Aplicar `02`, `03` y `04` en TiDB.
 - [ ] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
 - [ ] Elastic Cloud — activar en Sprint 2.
 - [ ] Código real de conexión a MySQL en cada microservicio — es el trabajo de Sprint 1/2 de cada quien, ver [`GUIA_CRUD_PASO_A_PASO.md`](GUIA_CRUD_PASO_A_PASO.md).
