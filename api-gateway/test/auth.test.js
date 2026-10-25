@@ -202,6 +202,23 @@ test('una contrasena de menos de 8 caracteres se rechaza', async (t) => {
   assert.strictEqual(res.status, 400);
 });
 
+// Paso de verdad: con las preguntas de crear-admin.js ocultas, se registro
+// "12345678" como email y esa cuenta no podia entrar al panel.
+test('un email sin formato valido se rechaza', async (t) => {
+  const { url, server } = await levantarGateway({ usuarios: [] });
+  t.after(() => server.close());
+
+  const res = await fetch(`${url}/api/auth/registro`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Sebastian', email: '12345678', password: 'una-clave-larga' }),
+  });
+  const body = await res.json();
+
+  assert.strictEqual(res.status, 400);
+  assert.match(body.error, /email/i);
+});
+
 test('GET /api/auth/yo devuelve los datos del token', async (t) => {
   const { url, server } = await levantarGateway({ usuarios: await adminEnBase() });
   t.after(() => server.close());

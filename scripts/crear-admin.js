@@ -15,7 +15,9 @@ const API = process.argv[2] || 'http://localhost:4000';
 function preguntar(texto, ocultar = false) {
   return new Promise((resolve) => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-    process.stdout.write(texto);
+    // Con salto de linea: algunas terminales (la del panel de Claude Code, por
+    // ejemplo) no muestran una linea sin terminar, y la pregunta quedaba oculta.
+    process.stdout.write(`${texto}\n> `);
     const escribirOriginal = rl.output.write.bind(rl.output);
     if (ocultar) rl.output.write = () => {};
     rl.question('', (valor) => {
@@ -30,9 +32,13 @@ function preguntar(texto, ocultar = false) {
 (async () => {
   console.log(`Creando administrador en: ${API}\n`);
 
-  const nombre = await preguntar('Nombre: ');
-  const email = await preguntar('Email: ');
-  const password = await preguntar('Contrasena (minimo 8, no se va a ver): ', true);
+  const nombre = await preguntar('1/3  Nombre:');
+  const email = await preguntar('2/3  Email (con el que vas a entrar al panel):');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    console.log(`\n"${email}" no parece un email. Cancelado, no se creo nada.`);
+    process.exit(1);
+  }
+  const password = await preguntar('3/3  Contrasena (minimo 8, no se va a ver):', true);
 
   if (!nombre || !email || !password) {
     console.log('\nFaltan datos. Cancelado.');

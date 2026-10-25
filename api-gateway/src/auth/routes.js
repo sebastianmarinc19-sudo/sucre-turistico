@@ -5,6 +5,7 @@ const { requiereAdmin, SIN_CONFIGURAR } = require('./middleware');
 const { haySecreto } = require('./tokens');
 
 const RONDAS_BCRYPT = 10;
+const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Algunos errores de mysql2 (por ejemplo, la base caida) llegan con `message` vacio
 // y solo traen `code`. Sin esto el front recibe {"error":""} y nadie sabe que paso.
@@ -72,6 +73,11 @@ function crearRutasAuth(repo) {
       const { nombre, email, password } = req.body || {};
       if (!nombre || !email || !password) {
         return res.status(400).json({ error: 'nombre, email y password son obligatorios' });
+      }
+      // El login del panel usa <input type="email">: una cuenta con un correo
+      // sin formato valido no podria entrar nunca desde la web.
+      if (!EMAIL_VALIDO.test(email)) {
+        return res.status(400).json({ error: 'El email no tiene un formato valido' });
       }
       if (password.length < 8) {
         return res.status(400).json({ error: 'La contrasena debe tener al menos 8 caracteres' });
