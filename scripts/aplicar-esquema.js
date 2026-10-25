@@ -10,7 +10,8 @@
 //
 // Se puede correr varias veces: 01-03 usan CREATE TABLE IF NOT EXISTS e
 // INSERT IGNORE, y 04 se salta si la tabla destinos ya tiene filas (sus
-// INSERT no son idempotentes y duplicarian los datos de ejemplo).
+// INSERT no son idempotentes y duplicarian los datos de ejemplo). 05 se
+// aplica siempre: solo inserta las filas cuyo nombre todavia no existe.
 
 const fs = require('fs');
 const path = require('path');
@@ -20,6 +21,8 @@ const readline = require('readline');
 const SQL_DIR = path.join(__dirname, '..', 'docs', 'sql');
 const ESQUEMA = ['01-usuarios.sql', '02-municipios.sql', '03-catalogo.sql'];
 const DATOS = '04-datos-ejemplo.sql';
+// Idempotente: se aplica siempre, tambien sobre una base que ya tiene datos.
+const MAS_DATOS = '05-mas-datos.sql';
 const TABLAS = ['usuarios', 'municipios', 'destinos', 'alojamientos', 'restaurantes', 'platos', 'experiencias', 'eventos'];
 
 const CONFIG = {
@@ -96,6 +99,7 @@ async function aplicar(conexion, archivo) {
       const [[{ n }]] = await conexion.query('SELECT COUNT(*) AS n FROM destinos');
       if (n > 0) console.log(`Saltando ${DATOS}: destinos ya tiene ${n} filas y se duplicarian.`);
       else await aplicar(conexion, DATOS);
+      await aplicar(conexion, MAS_DATOS);
     }
 
     console.log('');
