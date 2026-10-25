@@ -23,15 +23,15 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | ~~CRUD `gastronomia-service`~~ **hecho** | Halit | gastronomia-service |
 | ~~CRUD `experiencias-service`~~ **hecho** | Jaime | experiencias-service |
 | ~~CRUD `eventos-service`~~ **hecho** | Sebastián | eventos-service |
-| Levantar Elasticsearch, definir índice `turismo_index` | Sebastián | buscador-service |
-| Implementar búsqueda full-text y search-as-you-type | Halit + Jaime (pareja) | buscador-service |
+| ~~Levantar Elasticsearch, definir índice `turismo_index`~~ **hecho** | Sebastián | buscador-service |
+| ~~Implementar búsqueda full-text y search-as-you-type~~ **hecho** | Halit + Jaime (pareja) | buscador-service |
 
 ## Sprint 3 — Filtros/Facets + Integración Front-End
 *Cubre criterio 3 (Filtros y Facets — 15%) y criterio 4 (Integración Front-Back — 25%, el de mayor peso)*
 
 | Tarea | Responsable | Servicio |
 |---|---|---|
-| Implementar facets (municipio, categoría, tipo, precio) | Sebastián | buscador-service |
+| ~~Implementar facets (municipio, categoría, tipo, precio)~~ **hecho** | Sebastián | buscador-service |
 | ~~Maquetar páginas React (destinos, hoteles, restaurantes, experiencias, eventos)~~ **hecho** | Halit | frontend |
 | ~~Conectar React con API Gateway (Axios, manejo de errores/loading)~~ **hecho** | Jaime | frontend |
 | ~~Reemplazar datos de prueba (mock) por datos reales de la API~~ **hecho** | Todos | frontend |

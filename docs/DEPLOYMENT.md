@@ -76,7 +76,18 @@ El orden importa: `03` tiene llaves foráneas hacia `municipios`, así que `02` 
 - **En local (docker-compose) sigue usando el MySQL del contenedor**, no la nube — son ambientes separados a propósito, para no gastar la cuota gratis de TiDB con pruebas locales.
 
 ### Elasticsearch → pendiente a propósito
-Elastic Cloud solo da **14 días gratis**. Si lo activamos ahora, el trial se acaba antes de llegar al Sprint 2 (que es cuando `buscador-service` realmente lo necesita). Activarlo cuando empiecen esa parte — ver [`SPRINT_PLAN.md`](SPRINT_PLAN.md).
+Elastic Cloud solo da **14 días gratis**, que empiezan a contar al crear la cuenta. Por eso `buscador-service` se desarrolló y probó en local (Elasticsearch en docker-compose) y se despliega **pocos días antes de la entrega final**.
+
+Cuando toque desplegarlo:
+
+1. En [cloud.elastic.co](https://cloud.elastic.co) crear un deployment (Elasticsearch 8.x). Copiar el **endpoint de Elasticsearch** y crear una **API key**.
+2. En Render, servicio `sucre-turistico-buscador-service` → Environment:
+   - `ELASTICSEARCH_HOST` = el endpoint (empieza por `https://`)
+   - `ELASTICSEARCH_API_KEY` = la API key (en base64, tal como la entrega Elastic)
+   - `DESTINOS_URL`, `ALOJAMIENTO_URL`, `GASTRONOMIA_URL`, `EXPERIENCIAS_URL`, `EVENTOS_URL` = las URLs públicas de cada microservicio (las de la tabla de arriba). El buscador indexa leyendo sus APIs.
+3. Merge a `main` para que Render redespliegue. Al arrancar, si el índice `turismo_index` no existe, se crea y se llena solo.
+4. Después de crear o editar contenido en el panel, usar **"Actualizar buscador"** (o `POST /api/buscador/reindexar` con token de admin).
+5. Agregar el buscador a la lista de `frontend/src/api/despertar.js` y de `scripts/probar-produccion.js`, para que también se despierte y se pruebe.
 
 ## Comprobar que producción funciona
 
@@ -104,5 +115,5 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] Esquema del catálogo definido y compartido (`docs/sql/02`, `03`, `04`).
 - [x] Aplicar `02`, `03` y `04` en TiDB.
 - [ ] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
-- [ ] Elastic Cloud — activar en Sprint 2.
+- [ ] Elastic Cloud — crear el deployment y configurar `buscador-service` en Render (pasos arriba), pocos días antes de la entrega.
 - [x] Código real de conexión a MySQL en los 5 microservicios con base de datos (CRUD de destinos, alojamiento, gastronomía, experiencias y eventos).
