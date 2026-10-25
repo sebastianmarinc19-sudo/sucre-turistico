@@ -1,32 +1,16 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Destinos from './pages/Destinos';
+import Alojamiento from './pages/Alojamiento';
+import Gastronomia from './pages/Gastronomia';
+import Experiencias from './pages/Experiencias';
 import Eventos from './pages/Eventos';
 
-// AVISO TEMPORAL — BORRAR antes de la entrega final y de grabar la videomemoria.
-// Esta aqui para que quien clone el repo entienda de una que el proyecto esta
-// a medias y cual es la pagina de ejemplo.
-function AvisoDemo() {
+function NoEncontrada() {
   return (
-    <div className="alert alert-info border-0 small mb-4" role="note">
-      <strong>Proyecto en desarrollo.</strong> Solo <strong>Destinos</strong> esta
-      implementada, y sirve de ejemplo del patron a seguir: mira{' '}
-      <code>src/pages/Destinos.jsx</code> y <code>frontend/README.md</code>.
-      Las demas secciones estan pendientes. Si Destinos muestra un error, es porque
-      falta el CRUD de <code>destinos-service</code> en el back-end.
-    </div>
-  );
-}
-
-// Marcador de posicion para las paginas que aun no existen.
-// Halit y Jaime las van reemplazando por paginas reales (ver SPRINT_PLAN.md).
-function EnConstruccion({ titulo }) {
-  return (
-    <section>
-      <h2 className="h3">{titulo}</h2>
-      <div className="alert alert-light border mt-3">
-        Esta pagina todavia no esta implementada. Sigue el patron de{' '}
-        <code>src/pages/Destinos.jsx</code>.
-      </div>
+    <section className="text-center py-5">
+      <h2 className="h3">Página no encontrada</h2>
+      <p className="text-muted">La dirección que abriste no existe.</p>
+      <NavLink to="/" className="btn btn-outline-secondary btn-sm">Ir a Destinos</NavLink>
     </section>
   );
 }
@@ -62,14 +46,13 @@ function App() {
       </nav>
 
       <main className="container pb-5">
-        <AvisoDemo />
         <Routes>
           <Route path="/" element={<Destinos />} />
-          <Route path="/alojamiento" element={<EnConstruccion titulo="Alojamiento" />} />
-          <Route path="/gastronomia" element={<EnConstruccion titulo="Gastronomia" />} />
-          <Route path="/experiencias" element={<EnConstruccion titulo="Experiencias" />} />
+          <Route path="/alojamiento" element={<Alojamiento />} />
+          <Route path="/gastronomia" element={<Gastronomia />} />
+          <Route path="/experiencias" element={<Experiencias />} />
           <Route path="/eventos" element={<Eventos />} />
-          <Route path="*" element={<EnConstruccion titulo="Pagina no encontrada" />} />
+          <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>
     </BrowserRouter>
