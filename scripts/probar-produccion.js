@@ -95,6 +95,26 @@ async function probarSeguridad() {
     registrar(false, 'POST sin token es rechazado', err.message);
   }
 
+  // Saltarse el gateway tampoco debe servir (GATEWAY_SECRET). Con el cuerpo
+  // vacio no se crea nada: 403 es lo correcto; 400 significa que la peticion
+  // llego hasta la validacion, o sea, que el servicio esta abierto.
+  await Promise.all(SERVICIOS.map(async (url, i) => {
+    const nombre = `POST directo a ${CATALOGOS[i]} es rechazado`;
+    try {
+      const r = await pedir(`${url}/api/${CATALOGOS[i]}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const detalle = r.status === 403 ? 'HTTP 403'
+        : r.status === 503 ? 'HTTP 503: al servicio le falta GATEWAY_SECRET (el panel no puede guardar)'
+          : `HTTP ${r.status}: el servicio acepta escrituras sin pasar por el gateway`;
+      registrar(r.status === 403, nombre, detalle);
+    } catch (err) {
+      registrar(false, nombre, err.message);
+    }
+  }));
+
   // Con el cuerpo vacio no se crea nada: si no hay admin responde 400
   // (faltan datos); si ya hay, 401 (hace falta token).
   try {

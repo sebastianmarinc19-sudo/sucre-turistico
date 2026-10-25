@@ -4,6 +4,12 @@ Pruebas manuales realizadas sobre el microservicio `destinos-service` corriendo 
 `http://localhost:4001`, con MySQL levantado en Docker y datos reales de
 `docs/sql/04-datos-ejemplo.sql`.
 
+> **Nota:** estas capturas son anteriores a `GATEWAY_SECRET`. Hoy un `POST`,
+> `PUT` o `DELETE` directo al microservicio responde `403` si no lleva la
+> cabecera `X-Gateway-Secret`; para repetirlas en local, agréguenla en Postman
+> con el valor de `docker-compose.yml`, o hagan las escrituras por el gateway
+> (`localhost:4000`) con token. Ver [`DEPLOYMENT.md`](../../DEPLOYMENT.md).
+
 ## 1. GET /api/destinos — 200 OK
 ![GET listado](01-GET-listado-destinos-200.png)
 

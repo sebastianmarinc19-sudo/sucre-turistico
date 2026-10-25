@@ -71,8 +71,9 @@ function mostrar(titulo, conteo) {
 
 async function aplicar(conexion, archivo) {
   process.stdout.write(`Aplicando ${archivo} ... `);
-  await conexion.query(fs.readFileSync(path.join(SQL_DIR, archivo), 'utf8'));
-  console.log('ok');
+  const [resultados] = await conexion.query(fs.readFileSync(path.join(SQL_DIR, archivo), 'utf8'));
+  const filas = [].concat(resultados).reduce((total, r) => total + (r.affectedRows || 0), 0);
+  console.log(`ok (${filas} filas)`);
 }
 
 (async () => {
