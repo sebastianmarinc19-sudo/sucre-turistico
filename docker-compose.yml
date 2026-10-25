@@ -125,6 +125,12 @@ services:
     environment:
       - PORT=4006
       - ELASTICSEARCH_HOST=http://elasticsearch:9200
+      # Indexa leyendo las APIs de los demas servicios.
+      - DESTINOS_URL=http://destinos-service:4001
+      - ALOJAMIENTO_URL=http://alojamiento-service:4002
+      - GASTRONOMIA_URL=http://gastronomia-service:4003
+      - EXPERIENCIAS_URL=http://experiencias-service:4004
+      - EVENTOS_URL=http://eventos-service:4005
     ports:
       - "4006:4006"
     depends_on:
