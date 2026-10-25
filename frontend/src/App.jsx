@@ -1,4 +1,8 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
+import Encabezado from './components/Encabezado';
+import PiePagina from './components/PiePagina';
+import Inicio from './pages/Inicio';
 import Destinos from './pages/Destinos';
 import Alojamiento from './pages/Alojamiento';
 import Gastronomia from './pages/Gastronomia';
@@ -10,60 +14,45 @@ import Panel from './admin/Panel';
 
 function NoEncontrada() {
   return (
-    <section className="text-center py-5">
-      <h2 className="h3">Página no encontrada</h2>
+    <section className="container text-center py-5">
+      <i className="fas fa-compass fa-3x mb-3 text-muted opacity-50" aria-hidden="true" />
+      <h1 className="h3">Página no encontrada</h1>
       <p className="text-muted">La dirección que abriste no existe.</p>
-      <NavLink to="/" className="btn btn-outline-secondary btn-sm">Ir a Destinos</NavLink>
+      <Link to="/" className="btn btn-primary">Ir al inicio</Link>
     </section>
   );
 }
 
-const ENLACES = [
-  { ruta: '/', texto: 'Destinos', fin: true },
-  { ruta: '/alojamiento', texto: 'Alojamiento' },
-  { ruta: '/gastronomia', texto: 'Gastronomia' },
-  { ruta: '/experiencias', texto: 'Experiencias' },
-  { ruta: '/eventos', texto: 'Eventos' },
-  { ruta: '/buscar', texto: 'Buscar' },
-];
+// Al cambiar de pagina, volver arriba (si no, se queda en el scroll anterior).
+function ArribaAlNavegar() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
+const enContenedor = (elemento) => <div className="container py-4">{elemento}</div>;
 
 function App() {
   return (
     <BrowserRouter>
-      <nav className="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
-        <div className="container">
-          <span className="navbar-brand fw-semibold">Sucre Turistico</span>
-          <ul className="navbar-nav flex-row flex-wrap gap-3">
-            {ENLACES.map(({ ruta, texto, fin }) => (
-              <li className="nav-item" key={ruta}>
-                <NavLink
-                  to={ruta}
-                  end={fin}
-                  className={({ isActive }) => `nav-link p-0 ${isActive ? 'active fw-semibold' : ''}`}
-                >
-                  {texto}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-          <NavLink to="/admin" className="small text-muted ms-auto">Administrar</NavLink>
-        </div>
-      </nav>
-
-      <main className="container pb-5">
+      <ArribaAlNavegar />
+      <Encabezado />
+      <main className="st-main">
         <Routes>
-          <Route path="/" element={<Destinos />} />
+          <Route path="/" element={<Inicio />} />
+          <Route path="/destinos" element={<Destinos />} />
           <Route path="/alojamiento" element={<Alojamiento />} />
           <Route path="/gastronomia" element={<Gastronomia />} />
           <Route path="/experiencias" element={<Experiencias />} />
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/buscar" element={<Buscador />} />
-          <Route path="/admin/login" element={<Login />} />
-          <Route path="/admin" element={<Panel />} />
-          <Route path="/admin/:entidad" element={<Panel />} />
+          <Route path="/admin/login" element={enContenedor(<Login />)} />
+          <Route path="/admin" element={enContenedor(<Panel />)} />
+          <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
           <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>
+      <PiePagina />
     </BrowserRouter>
   );
 }

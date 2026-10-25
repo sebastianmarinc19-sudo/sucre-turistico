@@ -1,3 +1,5 @@
+import { imagenDe } from '../imagenes';
+
 const ETIQUETAS_TIPO = {
   acuatica: 'Acuática',
   cultural: 'Cultural',
@@ -6,38 +8,27 @@ const ETIQUETAS_TIPO = {
   gastronomica: 'Gastronómica',
 };
 
-// "4.0" -> "4 h", "1.5" -> "1,5 h"
-function duracion(horas) {
-  return `${Number(horas).toLocaleString('es-CO')} h`;
-}
-
 function TarjetaExperiencia({ experiencia }) {
-  const { nombre, municipio, tipo, descripcion, imagen_url, precio, duracion_horas, operador } = experiencia;
+  const { nombre, municipio, tipo, descripcion, precio, duracion_horas, operador } = experiencia;
 
   return (
-    <div className="col-12 col-md-6 col-lg-4">
-      <article className="card h-100 shadow-sm">
-        {imagen_url && (
-          <img
-            src={imagen_url}
-            className="card-img-top"
-            alt={nombre}
-            style={{ height: '180px', objectFit: 'cover' }}
-          />
-        )}
-        <div className="card-body d-flex flex-column">
-          <h3 className="card-title h5">{nombre}</h3>
-          <p className="text-muted small mb-2">
-            {municipio}
-            {tipo && <span className="badge text-bg-light ms-2">{ETIQUETAS_TIPO[tipo] || tipo}</span>}
-          </p>
-          {descripcion && <p className="card-text small">{descripcion}</p>}
-          <p className="mt-auto mb-0 small">
-            {precio != null && <strong>${Number(precio).toLocaleString('es-CO')}</strong>}
-            {precio != null && <span className="text-muted"> / persona</span>}
-            {duracion_horas != null && <span className="text-muted"> · {duracion(duracion_horas)}</span>}
-          </p>
-          {operador && <p className="mb-0 small text-muted">Opera: {operador}</p>}
+    <div className="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <article className="st-card">
+        <div className="st-card-img">
+          <img src={imagenDe(experiencia, tipo)} alt={nombre} loading="lazy" />
+          {tipo && <span className="st-badge">{ETIQUETAS_TIPO[tipo] || tipo}</span>}
+        </div>
+        <div className="st-card-body">
+          <h3 className="st-card-title">{nombre}</h3>
+          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {municipio}, Sucre</p>
+          {descripcion && <p className="st-card-desc">{descripcion}</p>}
+          {operador && <p className="st-card-extra">Opera: {operador}</p>}
+        </div>
+        <div className="st-card-footer">
+          <span>
+            {duracion_horas != null && <><i className="fas fa-clock" aria-hidden="true" /> {Number(duracion_horas).toLocaleString('es-CO')} h</>}
+          </span>
+          {precio != null && <span className="st-precio">${Number(precio).toLocaleString('es-CO')}<small>/persona</small></span>}
         </div>
       </article>
     </div>
