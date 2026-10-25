@@ -13,7 +13,7 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | Scaffold API Gateway (Express, rutas base, proxy a servicios) | Sebastián | api-gateway |
 | CRUD `destinos-service` (municipios, playas, atractivos) | Halit | destinos-service |
 | CRUD `alojamiento-service` (hoteles, hostales, posadas) | Jaime | alojamiento-service |
-| Definir esquema de base de datos MySQL (tablas, relaciones) | Todos (diseño conjunto) | — |
+| ~~Definir esquema de base de datos MySQL (tablas, relaciones)~~ **hecho** — ver [`docs/sql/`](sql/) | Sebastián | — |
 
 ## Sprint 2 — Resto de microservicios + Buscador
 *Cubre criterio 2 (Buscador con Elasticsearch — 15%) y avanza criterio 1*

@@ -28,55 +28,74 @@ Esto levanta MySQL local en `localhost:3306` y todos los servicios. **Vamos a tr
 
 > **Si tu equipo tiene 6 GB de RAM o menos, `npm run up` se va a caer.** El stack completo pide ~4.3 GB. No es que hayas hecho algo mal. Usa la ruta ligera de [`DESARROLLO_LOCAL.md`](DESARROLLO_LOCAL.md): levantas MySQL solo con `docker compose up -d mysql` (~400 MB) y tu servicio con `npm start` desde su carpeta. El resto de la guía funciona igual.
 
-## Paso 1 — Instalar el driver de MySQL
+## Paso 1 — El driver de MySQL ya está instalado
 
-Dentro de `services/destinos-service/`:
+`mysql2` (la librería que permite a Node.js hablar con MySQL) ya viene como dependencia de los cinco servicios que usan base de datos. Con el `npm install` de arriba ya lo tienes.
+
+> **No corras `npm install mysql2`.** Como usamos npm workspaces, ese comando modifica el `package-lock.json` de la **raíz**. Si los tres lo hacemos en ramas distintas, son tres conflictos en el mismo archivo. Ya está instalado justamente para evitar eso.
+
+## Paso 2 — Las tablas ya están definidas
+
+El esquema está escrito y es **compartido por los tres**. No inventes tus propias columnas: las cinco entidades siguen la misma forma a propósito, porque el buscador (criterio 2) mete todas en un mismo índice y los facets (criterio 3) agrupan por los mismos campos.
+
+Vive en `docs/sql/`, y MySQL lo ejecuta en orden por el número del nombre:
+
+| Archivo | Qué crea |
+|---|---|
+| `01-usuarios.sql` | tabla de administradores |
+| `02-municipios.sql` | los 26 municipios de Sucre — catálogo compartido |
+| `03-catalogo.sql` | `destinos`, `alojamientos`, `restaurantes`, `platos`, `experiencias`, `eventos` |
+| `04-datos-ejemplo.sql` | filas de ejemplo, para que la app muestre algo desde el primer día |
+
+**Antes de programar, lee el comentario del encabezado de [`03-catalogo.sql`](sql/03-catalogo.sql).** Ahí están las convenciones que compartimos y el porqué de cada una.
+
+### En local no tienes que hacer nada
+
+docker-compose monta `docs/sql` en `/docker-entrypoint-initdb.d`, y MySQL corre esos archivos solo la **primera vez** que se crea el volumen. Si ya habías levantado la base antes de este cambio, las tablas no existen todavía:
 
 ```bash
-npm install mysql2
+docker compose down -v && npm run up
 ```
 
-Esto agrega `mysql2` a su `package.json`. Es la librería que permite a Node.js hablar con MySQL.
+Si estás en la ruta ligera de [`DESARROLLO_LOCAL.md`](DESARROLLO_LOCAL.md):
 
-## Paso 2 — Crear la tabla en la base de datos
-
-Necesitas un cliente de MySQL para ejecutar SQL. Opciones fáciles y gratis:
-- [TablePlus](https://tableplus.com/) (recomendado, interfaz simple)
-- [DBeaver](https://dbeaver.io/) (gratis, más completo)
-- La extensión "SQLTools" en VS Code
-
-Conéctate con estos datos (son los de tu MySQL local, del `docker-compose.yml`):
-
-```
-Host: localhost
-Puerto: 3306
-Usuario: root
-Contraseña: root
-Base de datos: sucre_turistico
+```bash
+docker compose down -v && docker compose up -d mysql
 ```
 
-Ejecuta esto para crear la tabla:
+`-v` borra tus datos locales. Son de prueba, no pasa nada.
+
+### Así quedó tu tabla
 
 ```sql
 CREATE TABLE destinos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(150) NOT NULL,
-  municipio VARCHAR(100) NOT NULL,
+  municipio_id INT NOT NULL,          -- -> municipios(id)
   categoria ENUM('playa', 'atractivo_natural', 'atractivo_cultural', 'lugar_turistico') NOT NULL,
   descripcion TEXT,
   imagen_url VARCHAR(500),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  activo BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  ...
 );
 ```
 
-**¿Por qué una sola tabla `destinos` con una columna `categoria`, en vez de tablas separadas para municipios/playas/atractivos?** Porque para un CRUD básico es más simple de manejar y de explicar, y cumple igual con lo que pide el objetivo del proyecto. Si más adelante necesitan algo más sofisticado, se puede normalizar.
+Dos cosas que cambian cómo escribes el CRUD:
 
-Prueba insertando un par de filas de ejemplo:
+**`municipio_id`, no `municipio`.** El municipio es una llave foránea, no un texto libre. Si cada uno guardara el nombre a mano, "Tolú" y "Tolu" contarían como dos municipios distintos y el facet de municipio quedaría roto. Hacia afuera tu API **sí** devuelve el nombre, con un `JOIN` y un alias — el front no se entera de la diferencia.
 
-```sql
-INSERT INTO destinos (nombre, municipio, categoria, descripcion) VALUES
-('Playa Coveñas', 'Coveñas', 'playa', 'Playa principal del municipio, ideal para deportes acuáticos.'),
-('Mangle de San Bernardo', 'Tolú', 'atractivo_natural', 'Ecosistema de manglar con recorridos guiados.');
+**`activo`, en vez de borrar de verdad.** El `DELETE` de tu CRUD hace `UPDATE ... SET activo = FALSE`. Si en plena demo alguien borra algo por error, se recupera con un UPDATE. Los `GET` públicos filtran por `WHERE activo = TRUE`.
+
+### Para mirar la base con un cliente visual
+
+Opciones fáciles y gratis: [TablePlus](https://tableplus.com/), [DBeaver](https://dbeaver.io/), o la extensión "SQLTools" de VS Code. Conéctate a tu MySQL local:
+
+```
+Host: localhost     Puerto: 3306
+Usuario: root       Contraseña: root
+Base de datos: sucre_turistico
 ```
 
 ## Paso 3 — Conectar el servicio a la base de datos
@@ -113,22 +132,33 @@ Y reemplázala por esto:
 ```js
 const pool = require('./db');
 
-// Listar todos los destinos (con filtro opcional por municipio o categoría)
+// Todas las consultas hacen JOIN con municipios y renombran m.nombre a
+// "municipio". Asi la API sigue devolviendo { municipio: "Coveñas" } aunque
+// en la tabla lo que se guarde sea un municipio_id: el front no cambia.
+const SELECT_BASE = `
+  SELECT d.id, d.nombre, m.nombre AS municipio, d.municipio_id,
+         d.categoria, d.descripcion, d.imagen_url
+  FROM destinos d
+  JOIN municipios m ON m.id = d.municipio_id
+`;
+
+// Listar destinos (con filtro opcional por municipio o categoría)
 app.get('/api/destinos', async (req, res) => {
   try {
     const { municipio, categoria } = req.query;
-    let sql = 'SELECT * FROM destinos WHERE 1=1';
+    // activo = TRUE deja fuera los que se "borraron".
+    let sql = `${SELECT_BASE} WHERE d.activo = TRUE`;
     const params = [];
 
     if (municipio) {
-      sql += ' AND municipio = ?';
+      sql += ' AND m.nombre = ?';
       params.push(municipio);
     }
     if (categoria) {
-      sql += ' AND categoria = ?';
+      sql += ' AND d.categoria = ?';
       params.push(categoria);
     }
-    sql += ' ORDER BY id DESC';
+    sql += ' ORDER BY d.id DESC';
 
     const [rows] = await pool.query(sql, params);
     res.json(rows);
@@ -140,7 +170,7 @@ app.get('/api/destinos', async (req, res) => {
 // Obtener un destino por id
 app.get('/api/destinos/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM destinos WHERE id = ?', [req.params.id]);
+    const [rows] = await pool.query(`${SELECT_BASE} WHERE d.id = ? AND d.activo = TRUE`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Destino no encontrado' });
     res.json(rows[0]);
   } catch (err) {
@@ -151,16 +181,21 @@ app.get('/api/destinos/:id', async (req, res) => {
 // Crear un destino nuevo
 app.post('/api/destinos', async (req, res) => {
   try {
-    const { nombre, municipio, categoria, descripcion, imagen_url } = req.body;
-    if (!nombre || !municipio || !categoria) {
-      return res.status(400).json({ error: 'nombre, municipio y categoria son obligatorios' });
+    const { nombre, municipio_id, categoria, descripcion, imagen_url } = req.body;
+    if (!nombre || !municipio_id || !categoria) {
+      return res.status(400).json({ error: 'nombre, municipio_id y categoria son obligatorios' });
     }
     const [result] = await pool.query(
-      'INSERT INTO destinos (nombre, municipio, categoria, descripcion, imagen_url) VALUES (?, ?, ?, ?, ?)',
-      [nombre, municipio, categoria, descripcion || null, imagen_url || null]
+      'INSERT INTO destinos (nombre, municipio_id, categoria, descripcion, imagen_url) VALUES (?, ?, ?, ?, ?)',
+      [nombre, municipio_id, categoria, descripcion || null, imagen_url || null]
     );
-    res.status(201).json({ id: result.insertId, nombre, municipio, categoria, descripcion, imagen_url });
+    res.status(201).json({ id: result.insertId, nombre, municipio_id, categoria, descripcion, imagen_url });
   } catch (err) {
+    // Si mandan un municipio_id que no existe, MySQL rechaza la llave foranea.
+    // Eso es culpa de quien llama, no del servidor: por eso 400 y no 500.
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Ese municipio_id no existe' });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -168,24 +203,37 @@ app.post('/api/destinos', async (req, res) => {
 // Actualizar un destino
 app.put('/api/destinos/:id', async (req, res) => {
   try {
-    const { nombre, municipio, categoria, descripcion, imagen_url } = req.body;
+    const { nombre, municipio_id, categoria, descripcion, imagen_url } = req.body;
     const [result] = await pool.query(
-      'UPDATE destinos SET nombre=?, municipio=?, categoria=?, descripcion=?, imagen_url=? WHERE id=?',
-      [nombre, municipio, categoria, descripcion, imagen_url, req.params.id]
+      'UPDATE destinos SET nombre=?, municipio_id=?, categoria=?, descripcion=?, imagen_url=? WHERE id=? AND activo=TRUE',
+      [nombre, municipio_id, categoria, descripcion, imagen_url, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Destino no encontrado' });
-    res.json({ id: req.params.id, nombre, municipio, categoria, descripcion, imagen_url });
+    res.json({ id: Number(req.params.id), nombre, municipio_id, categoria, descripcion, imagen_url });
+  } catch (err) {
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Ese municipio_id no existe' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// "Eliminar" un destino: no lo borra, lo marca como inactivo.
+app.delete('/api/destinos/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query('UPDATE destinos SET activo = FALSE WHERE id = ? AND activo = TRUE', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Destino no encontrado' });
+    res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Eliminar un destino
-app.delete('/api/destinos/:id', async (req, res) => {
+// Lista de municipios, para llenar el <select> del formulario del front.
+app.get('/api/destinos/catalogos/municipios', async (req, res) => {
   try {
-    const [result] = await pool.query('DELETE FROM destinos WHERE id = ?', [req.params.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Destino no encontrado' });
-    res.status(204).send();
+    const [rows] = await pool.query('SELECT id, nombre FROM municipios ORDER BY nombre');
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -196,29 +244,34 @@ app.delete('/api/destinos/:id', async (req, res) => {
 - `?` en el SQL es un **placeholder** — evita que alguien inyecte SQL malicioso metiendo código en el campo `nombre` (esto se llama SQL injection).
 - `try/catch` captura errores (ej. si la base de datos no responde) y responde con un mensaje en vez de que el servidor se caiga.
 - Los códigos de estado HTTP importan: `201` = creado, `404` = no existe, `400` = el usuario mandó datos inválidos, `500` = error del servidor.
+- El **`JOIN`** con `municipios` es lo que permite guardar un `municipio_id` pero devolver el nombre. El alias `AS municipio` es lo que hace que el front siga funcionando igual.
+- El `DELETE` hace un **`UPDATE`**. Se llama *soft delete*: el dato queda en la base marcado como inactivo. Es lo que hace la mayoría de aplicaciones reales, porque borrar de verdad no se deshace.
 
 ## Paso 5 — Probar que funciona
 
 Con `npm run up` corriendo, prueba desde otra terminal:
 
 ```bash
-# Listar
+# Listar (ya trae los 6 destinos de 04-datos-ejemplo.sql)
 curl http://localhost:4001/api/destinos
 
-# Crear
-curl -X POST http://localhost:4001/api/destinos \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Islas de San Bernardo","municipio":"Tolú","categoria":"atractivo_natural","descripcion":"Archipiélago con arrecifes de coral."}'
+# Filtrar
+curl "http://localhost:4001/api/destinos?municipio=Cove%C3%B1as"
+curl "http://localhost:4001/api/destinos?categoria=playa"
+
+# Ver los municipios y sus id (los necesitas para crear)
+curl http://localhost:4001/api/destinos/catalogos/municipios
+
+# Crear  (municipio_id, no municipio: saca el numero del comando de arriba)
+curl -X POST http://localhost:4001/api/destinos   -H "Content-Type: application/json"   -d '{"nombre":"Volcán del Totumo","municipio_id":1,"categoria":"atractivo_natural","descripcion":"Ejemplo de prueba."}'
 
 # Obtener uno (cambia el 1 por el id real)
 curl http://localhost:4001/api/destinos/1
 
 # Actualizar
-curl -X PUT http://localhost:4001/api/destinos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Islas de San Bernardo","municipio":"Tolú","categoria":"atractivo_natural","descripcion":"Actualizado"}'
+curl -X PUT http://localhost:4001/api/destinos/1   -H "Content-Type: application/json"   -d '{"nombre":"Playa de Coveñas","municipio_id":7,"categoria":"playa","descripcion":"Actualizado"}'
 
-# Eliminar
+# Eliminar (lo marca inactivo; deja de salir en el listado)
 curl -X DELETE http://localhost:4001/api/destinos/1
 ```
 
@@ -314,29 +367,34 @@ Abre un Pull Request en GitHub contra `develop`, pide que alguien del equipo lo 
 
 ---
 
-## Cómo lo adapta Jaime para `alojamiento-service`
+## Cómo se adapta a los otros servicios
 
-Mismo patrón, cambiando nombres:
+El patrón es idéntico en los cinco. Lo único que cambia son los nombres y la columna de clasificación:
 
-1. `npm install mysql2` dentro de `services/alojamiento-service/`.
-2. Tabla `alojamientos`:
-   ```sql
-   CREATE TABLE alojamientos (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     nombre VARCHAR(150) NOT NULL,
-     municipio VARCHAR(100) NOT NULL,
-     tipo ENUM('hotel', 'hostal', 'posada', 'apartamento') NOT NULL,
-     precio_noche DECIMAL(10,2),
-     servicios TEXT,
-     imagen_url VARCHAR(500),
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
-3. Mismo `src/db.js` (copiar tal cual).
-4. Mismas 5 rutas (`GET /api/alojamientos`, `GET /api/alojamientos/:id`, `POST`, `PUT`, `DELETE`), cambiando `destinos` por `alojamientos` y los campos del `INSERT`/`UPDATE` según la tabla de arriba.
-5. Probar en el puerto `4002` en vez de `4001`.
-6. Mismas dos pruebas del Paso 6, en `services/alojamiento-service/test/alojamientos.test.js` (cambiando la ruta del `POST` y los campos obligatorios: `nombre`, `municipio`, `tipo`).
+| Servicio | Puerto | Tabla | Ruta base | Clasificación | Responsable |
+|---|---|---|---|---|---|
+| `destinos-service` | 4001 | `destinos` | `/api/destinos` | `categoria` | Halit |
+| `alojamiento-service` | 4002 | `alojamientos` | `/api/alojamientos` | `tipo` | Jaime |
+| `gastronomia-service` | 4003 | `restaurantes` | `/api/gastronomia` | `tipo_cocina` | Halit |
+| `experiencias-service` | 4004 | `experiencias` | `/api/experiencias` | `tipo` | Jaime |
+| `eventos-service` | 4005 | `eventos` | `/api/eventos` | `tipo` | Sebastián |
+
+Los pasos, en concreto:
+
+1. **No instales nada**: `mysql2` ya está en tu `package.json` (Paso 1).
+2. **No crees la tabla**: ya existe en [`03-catalogo.sql`](sql/03-catalogo.sql). Mira ahí qué columnas tiene la tuya — todas comparten `id`, `nombre`, `municipio_id`, `descripcion`, `imagen_url` y `activo`, y cada una agrega las suyas.
+3. Copia `src/db.js` tal cual.
+4. Copia las rutas del Paso 4 cambiando la tabla, la ruta y los campos del `INSERT`/`UPDATE`. El `JOIN` con `municipios`, el `WHERE activo = TRUE` y el soft delete son iguales en todos.
+5. Prueba en tu puerto.
+6. Misma prueba automática del Paso 6, en `services/<tu-servicio>/test/`.
+
+**Ojo con los dos que tienen algo propio:**
+
+- **`gastronomia-service`** tiene además la tabla `platos`, que cuelga de `restaurantes`. El CRUD de platos es opcional si el tiempo aprieta — primero terminen restaurantes.
+- **`eventos-service`** tiene `fecha_inicio` obligatoria. La historia 11 del backlog pide consultar por fecha, así que el listado debe aceptar `?desde=2026-01-01&hasta=2026-12-31`.
 
 ## Cuando ya esté listo para producción
 
-La tabla también hay que crearla en la base de datos de la nube (TiDB) para que funcione en Render. Eso lo coordina Sebastián — avísale cuando tu PR esté aprobado y lo agregamos allá.
+Las tablas también tienen que existir en la base de datos de la nube (TiDB) para que funcione en Render. Ahí los archivos de `docs/sql/` **no se ejecutan solos**: hay que correrlos a mano una vez, en orden (`01`, `02`, `03`, y `04` solo si queremos los datos de ejemplo también en producción).
+
+Eso lo coordina Sebastián — avísale cuando tu PR esté aprobado.
