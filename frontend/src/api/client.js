@@ -35,6 +35,18 @@ api.interceptors.response.use(undefined, async (error) => {
   return api(config);
 });
 
+// Un 401 fuera del login significa que el token vencio (dura 8 horas) o no es
+// valido: se borra la sesion y, si se estaba en el panel, se vuelve al login.
+api.interceptors.response.use(undefined, (error) => {
+  const esLogin = error.config?.url?.includes('/api/auth/login');
+  if (error.response?.status === 401 && !esLogin) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    if (window.location.pathname.startsWith('/admin')) window.location.assign('/admin/login');
+  }
+  throw error;
+});
+
 // Traduce los errores de axios a un mensaje que se le pueda mostrar a una persona.
 export function mensajeDeError(error) {
   if (error.code === 'ECONNABORTED') {

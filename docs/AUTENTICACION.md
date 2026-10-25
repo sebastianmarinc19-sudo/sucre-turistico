@@ -82,7 +82,7 @@ Ojo: `-v` borra los datos locales de MySQL. Es tu base de desarrollo, no pasa na
 
 ## Desde el front-end
 
-El flujo que hay que construir en React:
+Ya está implementado en el panel de administración (`/admin`, ver [`frontend/README.md`](../frontend/README.md)). Así funciona:
 
 1. Pantalla de login que hace `POST /api/auth/login`.
 2. Guardar el `token` (en `localStorage` está bien para este proyecto).
