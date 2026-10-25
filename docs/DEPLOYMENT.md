@@ -97,4 +97,4 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] Aplicar `02`, `03` y `04` en TiDB.
 - [ ] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
 - [ ] Elastic Cloud — activar en Sprint 2.
-- [ ] Código real de conexión a MySQL en cada microservicio — es el trabajo de Sprint 1/2 de cada quien, ver [`GUIA_CRUD_PASO_A_PASO.md`](GUIA_CRUD_PASO_A_PASO.md).
+- [x] Código real de conexión a MySQL en los 5 microservicios con base de datos (CRUD de destinos, alojamiento, gastronomía, experiencias y eventos).

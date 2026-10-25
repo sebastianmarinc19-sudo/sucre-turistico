@@ -3,6 +3,18 @@
 Plataforma Web Full Stack para la Promoción y Gestión Turística del Golfo de Morrosquillo.
 Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de Sucre (UNIAJS).
 
+## En producción
+
+| | URL |
+|---|---|
+| Aplicación | https://sucre-turistico-frontend.vercel.app |
+| API Gateway | https://sucre-turistico.onrender.com/health |
+| Panel de administración | https://sucre-turistico-frontend.vercel.app/admin |
+
+Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. Pendiente: el buscador con Elasticsearch y sus facets (ver [`docs/SPRINT_PLAN.md`](docs/SPRINT_PLAN.md)).
+
+Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minuto y deja los servicios despiertos (los gratis de Render se duermen tras 15 min).
+
 ## Equipo
 
 | Nombre    | Rol           |
@@ -25,12 +37,12 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 
 ## Arquitectura
 
-- **Front-End:** React (JavaScript ES6+, Bootstrap, React Router, Axios, Recharts).
+- **Front-End:** React (JavaScript ES6+, Bootstrap, React Router, Axios).
 - **Back-End:** Node.js + Express, arquitectura de microservicios detrás de un API Gateway.
 - **Microservicios:** `destinos`, `alojamiento`, `gastronomia`, `experiencias`, `eventos`, `buscador`.
 - **Bases de datos:** MySQL (datos estructurados), Elasticsearch (búsqueda full-text, facets, sugerencias).
 - **Contenerización:** Docker + Docker Compose.
-- **Despliegue:** Front-end en Vercel, back-end en Render/Railway, Elasticsearch en Elastic Cloud.
+- **Despliegue:** Front-end en Vercel, back-end en Render, MySQL en TiDB Cloud (Elasticsearch en Elastic Cloud, pendiente).
 
 ## Estructura del repositorio
 
@@ -69,7 +81,7 @@ npm run up         # equivalente a: docker compose up --build
 
 Si algo falla, [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md) tiene una sección de problemas conocidos con los errores que ya nos salieron montando esto.
 
-- Front-end: http://localhost:3000 (una vez exista, ver [`frontend/README.md`](frontend/README.md))
+- Front-end: http://localhost:3000 (ver [`frontend/README.md`](frontend/README.md))
 - API Gateway: http://localhost:4000/health
 - Cada microservicio: http://localhost:400X/health (`destinos`=4001, `alojamiento`=4002, `gastronomia`=4003, `experiencias`=4004, `eventos`=4005, `buscador`=4006)
 - Elasticsearch: http://localhost:9200
