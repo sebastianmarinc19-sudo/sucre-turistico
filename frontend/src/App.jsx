@@ -4,6 +4,8 @@ import Alojamiento from './pages/Alojamiento';
 import Gastronomia from './pages/Gastronomia';
 import Experiencias from './pages/Experiencias';
 import Eventos from './pages/Eventos';
+import Login from './admin/Login';
+import Panel from './admin/Panel';
 
 function NoEncontrada() {
   return (
@@ -42,6 +44,7 @@ function App() {
               </li>
             ))}
           </ul>
+          <NavLink to="/admin" className="small text-muted ms-auto">Administrar</NavLink>
         </div>
       </nav>
 
@@ -52,6 +55,9 @@ function App() {
           <Route path="/gastronomia" element={<Gastronomia />} />
           <Route path="/experiencias" element={<Experiencias />} />
           <Route path="/eventos" element={<Eventos />} />
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin" element={<Panel />} />
+          <Route path="/admin/:entidad" element={<Panel />} />
           <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>
