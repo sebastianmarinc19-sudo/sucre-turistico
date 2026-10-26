@@ -557,10 +557,6 @@ a.st-card:hover .st-card-title, a.st-evento:hover .st-card-title { color: var(--
 }
 .st-hero-fijo > * { pointer-events: auto; }
 .st-hero-fijo .st-hero-stats { margin-top: 0; }
-.st-progreso { display: flex; gap: 6px; width: min(260px, 70vw); }
-.st-progreso button { flex: 1; height: 16px; padding: 6px 0; border: 0; background: none; cursor: pointer; }
-.st-progreso button::before { content: ''; display: block; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .35); }
-.st-progreso span { display: block; height: 4px; margin-top: -4px; border-radius: 2px; background: #fff; transform-origin: left; transition: transform .1s linear; }
 @media (max-width: 575px) {
   .st-hero-tematica { min-height: 660px; height: auto; }
   .st-vista { padding: 36px 16px 230px; gap: 10px; }

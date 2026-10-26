@@ -1,6 +1,6 @@
 import { ArrowRight, CalendarDays } from 'lucide-react';
 import { m } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
@@ -14,8 +14,6 @@ import Clima from './Clima';
 // texto, boton, clima de su municipio y un dato real. Abajo quedan fijos el
 // buscador y los contadores (children), que son lo que mas se usa.
 //
-// - Rayitas de progreso tipo historias: se llenan mientras pasa el tiempo
-//   de cada vista y al tocarlas se salta a esa vista.
 // - Pausa con el mouse encima; en el celular se desliza con el dedo.
 // - Avanza sola siempre (se pidio asi). Si el sistema pide reducir
 //   movimiento, igual cambia, pero con un fundido simple: sin el zoom de la
@@ -94,9 +92,7 @@ const linea = {
 
 function PortadaTematica({ cantidades, evento, children }) {
   const vistas = armarVistas({ cantidades, evento });
-  const swiperRef = useRef(null);
   const [activa, setActiva] = useState(0);
-  const [avance, setAvance] = useState(0);
 
   return (
     <section className="st-hero st-hero-tematica">
@@ -108,9 +104,7 @@ function PortadaTematica({ cantidades, evento, children }) {
         speed={900}
         loop
         autoplay={{ delay: DURACION_MS, disableOnInteraction: false, pauseOnMouseEnter: true }}
-        onSwiper={(s) => { swiperRef.current = s; }}
-        onSlideChange={(s) => { setActiva(s.realIndex); setAvance(0); }}
-        onAutoplayTimeLeft={(_s, _ms, restante) => setAvance(1 - restante)}
+        onSlideChange={(s) => setActiva(s.realIndex)}
       >
         {vistas.map((v, i) => (
           <SwiperSlide key={v.clave}>
@@ -142,20 +136,6 @@ function PortadaTematica({ cantidades, evento, children }) {
 
       <div className="st-hero-fijo">
         {children}
-        <div className="st-progreso" role="tablist" aria-label="Vistas de la portada">
-          {vistas.map((v, i) => (
-            <button
-              key={v.clave}
-              type="button"
-              role="tab"
-              aria-selected={activa === i}
-              aria-label={`Ver vista ${i + 1} de ${vistas.length}`}
-              onClick={() => swiperRef.current?.slideToLoop(i)}
-            >
-              <span style={{ transform: `scaleX(${i < activa ? 1 : i === activa ? avance : 0})` }} />
-            </button>
-          ))}
-        </div>
       </div>
     </section>
   );
