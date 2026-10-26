@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import BarraInferior from './components/BarraInferior';
+import BuscadorRapido from './components/BuscadorRapido';
 import Encabezado from './components/Encabezado';
 import PiePagina from './components/PiePagina';
 import Inicio from './pages/Inicio';
@@ -18,6 +19,7 @@ import { CATALOGO } from './catalogo';
 // carrusel, y el turista casi nunca abre el buscador avanzado ni el panel.
 const Buscador = lazy(() => import('./pages/Buscador'));
 const Detalle = lazy(() => import('./pages/Detalle'));
+const Favoritos = lazy(() => import('./pages/Favoritos'));
 const Login = lazy(() => import('./admin/Login'));
 const Panel = lazy(() => import('./admin/Panel'));
 
@@ -67,6 +69,7 @@ function Paginas() {
             <Route key={seccion} path={`${ruta}/:id`} element={<Detalle seccion={seccion} />} />
           ))}
           <Route path="/buscar" element={<Buscador />} />
+          <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/admin/login" element={enContenedor(<Login />)} />
           <Route path="/admin" element={enContenedor(<Panel />)} />
           <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
@@ -92,6 +95,7 @@ function App() {
           </main>
           <PiePagina />
           <BarraInferior />
+          <BuscadorRapido />
           <Toaster position="top-center" richColors closeButton />
         </BrowserRouter>
       </LazyMotion>

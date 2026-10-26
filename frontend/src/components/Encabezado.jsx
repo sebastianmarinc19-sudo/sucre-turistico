@@ -1,12 +1,16 @@
-import { Search, UserRound } from 'lucide-react';
+import { Heart, Search, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { abrirBuscadorRapido } from '../buscadorRapido';
+import { useFavoritos } from '../favoritos';
 import Logo from './Logo';
 import { SECCIONES } from '../secciones';
 
 // En el celular el menu va abajo, como en una app (ver BarraInferior.jsx):
 // aqui arriba solo quedan el logo y, en pantallas grandes, las secciones.
 function Encabezado() {
+  const favoritos = useFavoritos();
+
   // Al bajar, el encabezado se vuelve translucido y gana sombra.
   const [conScroll, setConScroll] = useState(false);
   useEffect(() => {
@@ -30,8 +34,14 @@ function Encabezado() {
           </ul>
         </nav>
         <div className="st-nav-acciones">
-          <Link to="/buscar" className="st-boton-icono" aria-label="Buscar">
-            <Search size={18} aria-hidden="true" />
+          <button type="button" className="st-buscar-atajo" onClick={() => abrirBuscadorRapido()} aria-label="Buscar (Ctrl+K)">
+            <Search size={17} aria-hidden="true" />
+            <span className="st-solo-escritorio">Buscar</span>
+            <kbd className="st-solo-escritorio">Ctrl K</kbd>
+          </button>
+          <Link to="/favoritos" className="st-boton-icono st-con-contador" aria-label={`Mis favoritos (${favoritos.length})`}>
+            <Heart size={18} aria-hidden="true" />
+            {favoritos.length > 0 && <span className="st-contador">{favoritos.length}</span>}
           </Link>
           <Link to="/admin" className="btn btn-primary btn-sm st-solo-escritorio">
             <UserRound size={16} aria-hidden="true" /> Administrar
