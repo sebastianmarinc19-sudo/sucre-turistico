@@ -3,12 +3,19 @@ import {
   Fan, Info, Lock, Map as IconoMapa, MapPin, Phone, ShowerHead, Snowflake, SquareParking, Star, Tag, Tent,
   TriangleAlert, Users, Utensils, Wallet, Waves, Wifi,
 } from 'lucide-react';
+import { Expand, MessageCircle, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import Lightbox from 'yet-another-react-lightbox';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
 import api, { mensajeDeError } from '../api/client';
 import { CATALOGO, categoriaDe, etiquetaDe, pesos, RANGOS_PRECIO } from '../catalogo';
+import BotonFavorito from '../components/BotonFavorito';
 import Carrusel from '../components/Carrusel';
 import { AvisoDespertando } from '../components/Cargando';
+import Clima from '../components/Clima';
 import MapaMunicipios from '../components/MapaMunicipios';
 import TarjetaDe from '../components/TarjetaDe';
 import { useEsperaLarga } from '../components/useEsperaLarga';
@@ -127,6 +134,41 @@ function Servicios({ servicios }) {
   );
 }
 
+// Menu nativo de compartir del celular; en computador, copia el enlace.
+async function compartir(r) {
+  const url = window.location.href;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: r.nombre, text: `${r.nombre} en ${r.municipio}, Sucre`, url });
+    } catch {
+      // La persona cerro el menu de compartir: no es un error.
+    }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.success('Enlace copiado', { description: 'Pégalo donde quieras compartirlo.' });
+  } catch {
+    toast.error('No se pudo copiar el enlace');
+  }
+}
+
+// Un celular colombiano: 10 digitos que empiezan por 3 (con o sin +57).
+function celularDe(telefono) {
+  const digitos = String(telefono || '').replace(/\D/g, '').replace(/^57(?=3\d{9}$)/, '');
+  return /^3\d{9}$/.test(digitos) ? `57${digitos}` : null;
+}
+
+// Con celular registrado, abre el chat con el lugar; si no, para enviarle
+// el enlace a alguien.
+function enlaceWhatsApp(r) {
+  const celular = celularDe(r.telefono);
+  if (celular) {
+    return `https://wa.me/${celular}?text=${encodeURIComponent(`Hola, vi ${r.nombre} en Sucre Turístico y quiero más información.`)}`;
+  }
+  return `https://wa.me/?text=${encodeURIComponent(`Mira ${r.nombre} en ${r.municipio}: ${window.location.href}`)}`;
+}
+
 function Detalle({ seccion }) {
   const { id } = useParams();
   const config = CATALOGO[seccion];
@@ -135,6 +177,7 @@ function Detalle({ seccion }) {
   const [todos, setTodos] = useState([]);
   const [error, setError] = useState(null);
   const [noExiste, setNoExiste] = useState(false);
+  const [fotoAbierta, setFotoAbierta] = useState(false);
   const cargando = !registro && !error && !noExiste;
   const esperaLarga = useEsperaLarga(cargando);
 
@@ -188,6 +231,7 @@ function Detalle({ seccion }) {
   }
 
   const r = registro;
+  const foto = imagenDe(r, categoriaDe(seccion, r), 1600, 700);
   const precio = precioDestacado(seccion, r);
   const filas = datosClave(seccion, r);
   const otros = relacionados(seccion, r, todos);
@@ -195,7 +239,7 @@ function Detalle({ seccion }) {
   return (
     <>
       <header className="st-detalle-hero">
-        <img src={imagenDe(r, categoriaDe(seccion, r), 1600, 700)} alt="" />
+        <img src={foto} alt="" />
         <div className="st-detalle-capa" />
         <div className="container st-detalle-hero-contenido">
           <nav className="st-migas" aria-label="Ruta de navegación">
@@ -204,8 +248,19 @@ function Detalle({ seccion }) {
           <span className="st-badge">{etiquetaDe(seccion, r)}</span>
           <h1>{r.nombre}</h1>
           <p><MapPin size={16} aria-hidden="true" /> {r.municipio}, Sucre</p>
+          <div className="st-detalle-acciones">
+            <BotonFavorito seccion={seccion} registro={r} grande />
+            <button type="button" className="st-boton-vidrio" onClick={() => compartir(r)}>
+              <Share2 size={17} aria-hidden="true" /> Compartir
+            </button>
+            <button type="button" className="st-boton-vidrio" onClick={() => setFotoAbierta(true)}>
+              <Expand size={17} aria-hidden="true" /> Ver foto
+            </button>
+          </div>
         </div>
       </header>
+      <Lightbox open={fotoAbierta} close={() => setFotoAbierta(false)} slides={[{ src: foto, alt: r.nombre }]}
+        plugins={[Zoom]} render={{ buttonPrev: () => null, buttonNext: () => null }} carousel={{ finite: true }} />
 
       <div className="container py-4">
         <div className="row g-4">
@@ -242,6 +297,10 @@ function Detalle({ seccion }) {
                   <dd>{r.municipio}</dd>
                 </div>
               </dl>
+              <Clima municipio={r.municipio} variante="ficha" />
+              <a className="btn st-btn-whatsapp w-100 mb-2" href={enlaceWhatsApp(r)} target="_blank" rel="noreferrer">
+                <MessageCircle size={17} aria-hidden="true" /> {celularDe(r.telefono) ? 'Escribir por WhatsApp' : 'Enviar por WhatsApp'}
+              </a>
               <Link to={config.ruta} className="btn btn-outline-primary w-100">
                 <ArrowLeft size={16} aria-hidden="true" /> Volver a {config.titulo}
               </Link>

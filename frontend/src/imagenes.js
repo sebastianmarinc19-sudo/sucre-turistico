@@ -55,3 +55,7 @@ export function imagenDe(registro, categoria, ancho, alto) {
 }
 
 export const IMAGEN_HERO = foto(PLAYA, 1600, 800);
+
+// Fotos que rotan en la portada (todas revisadas: playas e islas del Caribe).
+export const IMAGENES_PORTADA = [PLAYA, '1559128010-7c1ad6e1b6a5', '1519046904884-53103b34b206', '1473116763249-2faaef81ccda']
+  .map((id) => foto(id, 1600, 900));
