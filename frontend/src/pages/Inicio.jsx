@@ -1,6 +1,8 @@
+import { ArrowRight, Search } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { CATALOGO } from '../catalogo';
 import { IMAGEN_HERO } from '../imagenes';
 import { TarjetasEsqueleto } from '../components/Cargando';
 import Carrusel from '../components/Carrusel';
@@ -12,11 +14,11 @@ import { hoy } from '../fechas';
 const MapaMunicipios = lazy(() => import('../components/MapaMunicipios'));
 
 const CATEGORIAS = [
-  { clave: 'destinos', seccion: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', icono: 'fa-map-location-dot', color: 'azul', unidad: 'destinos', tipoBuscador: 'destino' },
-  { clave: 'alojamientos', seccion: 'alojamiento', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', icono: 'fa-hotel', color: 'cian', unidad: 'alojamientos', tipoBuscador: 'alojamiento' },
-  { clave: 'gastronomia', seccion: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', icono: 'fa-utensils', color: 'naranja', unidad: 'restaurantes', tipoBuscador: 'restaurante' },
-  { clave: 'experiencias', seccion: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', icono: 'fa-person-hiking', color: 'morado', unidad: 'actividades', tipoBuscador: 'experiencia' },
-  { clave: 'eventos', seccion: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', icono: 'fa-calendar-days', color: 'verde', unidad: 'eventos', tipoBuscador: 'evento' },
+  { clave: 'destinos', seccion: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', color: 'azul', unidad: 'destinos', tipoBuscador: 'destino' },
+  { clave: 'alojamientos', seccion: 'alojamiento', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', color: 'cian', unidad: 'alojamientos', tipoBuscador: 'alojamiento' },
+  { clave: 'gastronomia', seccion: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', color: 'naranja', unidad: 'restaurantes', tipoBuscador: 'restaurante' },
+  { clave: 'experiencias', seccion: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', color: 'morado', unidad: 'actividades', tipoBuscador: 'experiencia' },
+  { clave: 'eventos', seccion: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', color: 'verde', unidad: 'eventos', tipoBuscador: 'evento' },
 ];
 
 function Inicio() {
@@ -69,7 +71,7 @@ function Inicio() {
               <option value="">Todo</option>
               {CATEGORIAS.map((c) => <option key={c.clave} value={c.tipoBuscador}>{c.titulo}</option>)}
             </select>
-            <button type="submit"><i className="fas fa-magnifying-glass" aria-hidden="true" /> <span>Buscar</span></button>
+            <button type="submit"><Search size={18} aria-hidden="true" /> <span>Buscar</span></button>
           </form>
           <div className="st-hero-stats">
             {CATEGORIAS.slice(0, 4).map((c) => (
@@ -88,15 +90,18 @@ function Inicio() {
             </div>
           </div>
           <div className="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
-            {CATEGORIAS.map((c) => (
-              <div className="col" key={c.clave}>
-                <Link to={c.ruta} className="st-categoria">
-                  <span className={`st-categoria-icono ${c.color}`}><i className={`fas ${c.icono}`} aria-hidden="true" /></span>
-                  <strong>{c.titulo}</strong>
-                  <span className="st-categoria-cantidad">{cantidad(c.clave)} {c.unidad}</span>
-                </Link>
-              </div>
-            ))}
+            {CATEGORIAS.map((c) => {
+              const Icono = CATALOGO[c.seccion].icono;
+              return (
+                <div className="col" key={c.clave}>
+                  <Link to={c.ruta} className="st-categoria">
+                    <span className={`st-categoria-icono ${c.color}`}><Icono size={26} strokeWidth={1.8} aria-hidden="true" /></span>
+                    <strong>{c.titulo}</strong>
+                    <span className="st-categoria-cantidad">{cantidad(c.clave)} {c.unidad}</span>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -108,7 +113,7 @@ function Inicio() {
               <h2>Destinos destacados</h2>
               <p>Playas, naturaleza y cultura para tu próximo viaje.</p>
             </div>
-            <Link to="/destinos" className="btn btn-outline-primary btn-sm">Ver todos <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+            <Link to="/destinos" className="btn btn-outline-primary btn-sm">Ver todos <ArrowRight size={15} aria-hidden="true" /></Link>
           </div>
           {destinos === undefined && <TarjetasEsqueleto />}
           {destinos === null && <p className="text-muted">No se pudieron cargar los destinos en este momento.</p>}
@@ -144,7 +149,7 @@ function Inicio() {
                 <h2>Próximos eventos</h2>
                 <p>Lo que viene en la agenda de la región.</p>
               </div>
-              <Link to="/eventos" className="btn btn-outline-primary btn-sm">Ver agenda <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+              <Link to="/eventos" className="btn btn-outline-primary btn-sm">Ver agenda <ArrowRight size={15} aria-hidden="true" /></Link>
             </div>
             <div className="row g-4">
               {eventos.slice(0, 2).map((e) => <TarjetaEvento key={e.id} evento={e} />)}

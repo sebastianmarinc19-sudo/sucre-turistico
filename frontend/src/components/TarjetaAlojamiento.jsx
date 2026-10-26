@@ -1,3 +1,4 @@
+import { MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { categoriaDe, etiquetaDe, pesos, rutaDetalle } from '../catalogo';
 import { imagenDe } from '../imagenes';
@@ -15,7 +16,7 @@ function TarjetaAlojamiento({ alojamiento, columna }) {
         </div>
         <div className="st-card-body">
           <h3 className="st-card-title">{nombre}</h3>
-          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {municipio}, Sucre</p>
+          <p className="st-card-lugar"><MapPin size={13} aria-hidden="true" /> {municipio}, Sucre</p>
           {descripcion && <p className="st-card-desc">{descripcion}</p>}
           {Array.isArray(servicios) && servicios.length > 0 && (
             <p className="st-card-extra">{servicios.map((s) => s.replace(/_/g, ' ')).join(' · ')}</p>
@@ -24,7 +25,7 @@ function TarjetaAlojamiento({ alojamiento, columna }) {
         <div className="st-card-footer">
           <span>
             {estrellas > 0 && <span className="st-estrellas" aria-label={`${estrellas} estrellas`}>{'★'.repeat(estrellas)}</span>}
-            {capacidad && <span className="ms-2"><i className="fas fa-user-group" aria-hidden="true" /> {capacidad}</span>}
+            {capacidad && <span className="ms-2"><Users size={13} aria-hidden="true" /> {capacidad}</span>}
           </span>
           {precio_noche != null && <span className="st-precio">{pesos(precio_noche)}<small>/noche</small></span>}
         </div>

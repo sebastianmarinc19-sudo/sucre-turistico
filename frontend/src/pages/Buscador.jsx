@@ -1,3 +1,4 @@
+import { ArrowRight, MapPin } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api, { mensajeDeError } from '../api/client';
@@ -66,14 +67,14 @@ function Resultado({ r }) {
         </div>
         <div className="st-card-body">
           <h3 className="st-card-title">{r.nombre}</h3>
-          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {r.municipio}
+          <p className="st-card-lugar"><MapPin size={13} aria-hidden="true" /> {r.municipio}
             {r.categoria && <span className="ms-2">· {CATEGORIAS[r.categoria] || r.categoria}</span>}
           </p>
           {r.descripcion && <p className="st-card-desc">{r.descripcion}</p>}
         </div>
         <div className="st-card-footer">
           {/* Indices viejos pueden no traer ref_id: entonces se va a la seccion. */}
-          <Link to={r.ref_id ? `${r.ruta}/${r.ref_id}` : r.ruta}>Ver detalle <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+          <Link to={r.ref_id ? `${r.ruta}/${r.ref_id}` : r.ruta}>Ver detalle <ArrowRight size={15} aria-hidden="true" /></Link>
           {r.precio != null && <span className="st-precio">${Number(r.precio).toLocaleString('es-CO')}</span>}
         </div>
       </article>

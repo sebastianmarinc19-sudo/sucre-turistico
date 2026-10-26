@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { categoriaDe, etiquetaDe, pesos, rutaDetalle } from '../catalogo';
 import { aFecha, mesCorto, rangoDeFechas } from '../fechas';
@@ -20,7 +21,7 @@ function TarjetaEvento({ evento, columna = 'col-12 col-xl-6' }) {
         <div className="st-evento-body">
           <p className="st-card-extra mb-0">{rangoDeFechas(fecha_inicio, fecha_fin)}</p>
           <h3 className="st-card-title">{nombre}</h3>
-          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {lugar || municipio}</p>
+          <p className="st-card-lugar"><MapPin size={13} aria-hidden="true" /> {lugar || municipio}</p>
           {descripcion && <p className="st-card-desc">{descripcion}</p>}
           <p className="d-flex gap-2 align-items-center mt-auto mb-0">
             <span className="st-badge suave">{etiquetaDe('eventos', evento)}</span>

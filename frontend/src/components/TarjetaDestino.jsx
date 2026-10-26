@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { categoriaDe, etiquetaDe, rutaDetalle } from '../catalogo';
 import { imagenDe } from '../imagenes';
@@ -15,7 +16,7 @@ function TarjetaDestino({ destino, columna }) {
         </div>
         <div className="st-card-body">
           <h3 className="st-card-title">{nombre}</h3>
-          <p className="st-card-lugar"><i className="fas fa-location-dot" aria-hidden="true" /> {municipio}, Sucre</p>
+          <p className="st-card-lugar"><MapPin size={13} aria-hidden="true" /> {municipio}, Sucre</p>
           {descripcion && <p className="st-card-desc">{descripcion}</p>}
         </div>
       </Link>

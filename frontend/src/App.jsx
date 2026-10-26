@@ -1,5 +1,9 @@
+import { Compass } from 'lucide-react';
+import { domAnimation, LazyMotion, m, MotionConfig } from 'motion/react';
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import BarraInferior from './components/BarraInferior';
 import Encabezado from './components/Encabezado';
 import PiePagina from './components/PiePagina';
 import Inicio from './pages/Inicio';
@@ -20,7 +24,7 @@ const Panel = lazy(() => import('./admin/Panel'));
 function NoEncontrada() {
   return (
     <section className="container text-center py-5">
-      <i className="fas fa-compass fa-3x mb-3 text-muted opacity-50" aria-hidden="true" />
+      <Compass size={48} className="mb-3 text-muted opacity-50" aria-hidden="true" />
       <h1 className="h3">Página no encontrada</h1>
       <p className="text-muted">La dirección que abriste no existe.</p>
       <Link to="/" className="btn btn-primary">Ir al inicio</Link>
@@ -43,35 +47,55 @@ function CargandoPagina() {
   );
 }
 
-const enContenedor =(elemento) => <div className="container py-4">{elemento}</div>;
+const enContenedor = (elemento) => <div className="container py-4">{elemento}</div>;
+
+// Cada pagina entra con un fundido corto: al navegar se siente como una app
+// y no como un salto en seco.
+function Paginas() {
+  const { pathname } = useLocation();
+  return (
+    <m.div key={pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
+      <Suspense fallback={<CargandoPagina />}>
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/destinos" element={<Destinos />} />
+          <Route path="/alojamiento" element={<Alojamiento />} />
+          <Route path="/gastronomia" element={<Gastronomia />} />
+          <Route path="/experiencias" element={<Experiencias />} />
+          <Route path="/eventos" element={<Eventos />} />
+          {Object.entries(CATALOGO).map(([seccion, { ruta }]) => (
+            <Route key={seccion} path={`${ruta}/:id`} element={<Detalle seccion={seccion} />} />
+          ))}
+          <Route path="/buscar" element={<Buscador />} />
+          <Route path="/admin/login" element={enContenedor(<Login />)} />
+          <Route path="/admin" element={enContenedor(<Panel />)} />
+          <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
+          <Route path="*" element={<NoEncontrada />} />
+        </Routes>
+      </Suspense>
+    </m.div>
+  );
+}
 
 function App() {
   return (
-    <BrowserRouter>
-      <ArribaAlNavegar />
-      <Encabezado />
-      <main className="st-main">
-        <Suspense fallback={<CargandoPagina />}>
-          <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/destinos" element={<Destinos />} />
-            <Route path="/alojamiento" element={<Alojamiento />} />
-            <Route path="/gastronomia" element={<Gastronomia />} />
-            <Route path="/experiencias" element={<Experiencias />} />
-            <Route path="/eventos" element={<Eventos />} />
-            {Object.entries(CATALOGO).map(([seccion, { ruta }]) => (
-              <Route key={seccion} path={`${ruta}/:id`} element={<Detalle seccion={seccion} />} />
-            ))}
-            <Route path="/buscar" element={<Buscador />} />
-            <Route path="/admin/login" element={enContenedor(<Login />)} />
-            <Route path="/admin" element={enContenedor(<Panel />)} />
-            <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
-            <Route path="*" element={<NoEncontrada />} />
-          </Routes>
-        </Suspense>
-      </main>
-      <PiePagina />
-    </BrowserRouter>
+    // reducedMotion="user": si la persona pidio menos animaciones en su
+    // sistema operativo, motion las apaga.
+    <MotionConfig reducedMotion="user">
+      {/* LazyMotion + m: solo las funciones de animacion que se usan, no toda la libreria. */}
+      <LazyMotion features={domAnimation} strict>
+        <BrowserRouter>
+          <ArribaAlNavegar />
+          <Encabezado />
+          <main className="st-main">
+            <Paginas />
+          </main>
+          <PiePagina />
+          <BarraInferior />
+          <Toaster position="top-center" richColors closeButton />
+        </BrowserRouter>
+      </LazyMotion>
+    </MotionConfig>
   );
 }
 
