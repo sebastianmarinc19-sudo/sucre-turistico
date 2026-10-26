@@ -6,8 +6,7 @@ import { abrirBuscadorRapido } from '../buscadorRapido';
 import { CATALOGO } from '../catalogo';
 import { TarjetasEsqueleto } from '../components/Cargando';
 import Carrusel from '../components/Carrusel';
-import Clima from '../components/Clima';
-import PortadaRotativa from '../components/PortadaRotativa';
+import PortadaTematica from '../components/PortadaTematica';
 import TarjetaDestino from '../components/TarjetaDestino';
 import TarjetaEvento from '../components/TarjetaEvento';
 import { hoy } from '../fechas';
@@ -41,6 +40,11 @@ function Inicio() {
   const cantidad = (clave) => (Array.isArray(listas[clave]) ? listas[clave].length : '—');
   const destinos = listas.destinos;
   const eventos = listas.eventos;
+  const cantidades = Object.fromEntries(CATEGORIAS.map((c) => [c.clave, Array.isArray(listas[c.clave]) ? listas[c.clave].length : null]));
+  // El mas cercano: la API los manda desde hoy, pero no se asume el orden.
+  const proximoEvento = Array.isArray(eventos) && eventos.length > 0
+    ? [...eventos].sort((a, b) => a.fecha_inicio.localeCompare(b.fecha_inicio))[0]
+    : null;
   // Todo lo que ya llego, para el mapa: cada seccion se suma al llegar.
   const lugares = CATEGORIAS.flatMap((c) => (Array.isArray(listas[c.clave]) ? listas[c.clave].map((registro) => ({ seccion: c.seccion, registro })) : []));
   const mapaListo = CATEGORIAS.every((c) => listas[c.clave] !== undefined);
@@ -48,27 +52,19 @@ function Inicio() {
 
   return (
     <>
-      <section className="st-hero">
-        <PortadaRotativa />
-        <div className="st-hero-capa" />
-        <div className="st-hero-contenido">
-          <Clima municipio="Coveñas" />
-          <p className="st-hero-eyebrow">Golfo de Morrosquillo, Colombia</p>
-          <h1>Descubre el Paraíso <span>Caribeño</span></h1>
-          <p className="st-hero-sub">Planifica tu próxima aventura en el corazón del Caribe colombiano.</p>
-          {/* Abre el buscador instantaneo: responde mientras se escribe. */}
-          <button type="button" className="st-buscador-hero" onClick={() => abrirBuscadorRapido()}>
-            <Search size={18} className="text-muted" aria-hidden="true" />
-            <span className="st-buscador-hero-texto">¿A dónde quieres ir? Playas, hoteles, restaurantes…</span>
-            <span className="st-buscador-hero-boton"><Search size={18} aria-hidden="true" /> <span>Buscar</span></span>
-          </button>
-          <div className="st-hero-stats">
-            {CATEGORIAS.slice(0, 4).map((c) => (
-              <div key={c.clave}><strong>{cantidad(c.clave)}</strong><span>{c.titulo}</span></div>
-            ))}
-          </div>
+      <PortadaTematica cantidades={cantidades} evento={proximoEvento}>
+        {/* Abre el buscador instantaneo: responde mientras se escribe. */}
+        <button type="button" className="st-buscador-hero" onClick={() => abrirBuscadorRapido()}>
+          <Search size={18} className="text-muted" aria-hidden="true" />
+          <span className="st-buscador-hero-texto">¿A dónde quieres ir? Playas, hoteles, restaurantes…</span>
+          <span className="st-buscador-hero-boton"><Search size={18} aria-hidden="true" /> <span>Buscar</span></span>
+        </button>
+        <div className="st-hero-stats">
+          {CATEGORIAS.slice(0, 4).map((c) => (
+            <div key={c.clave}><strong>{cantidad(c.clave)}</strong><span>{c.titulo}</span></div>
+          ))}
         </div>
-      </section>
+      </PortadaTematica>
 
       <section className="st-seccion">
         <div className="container">
