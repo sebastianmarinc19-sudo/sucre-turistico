@@ -1,3 +1,4 @@
+import { SearchX } from 'lucide-react';
 import { AvisoDespertando, TarjetasEsqueleto } from './Cargando';
 import { useEsperaLarga } from './useEsperaLarga';
 
@@ -26,7 +27,7 @@ function EstadoLista({ cargando, error, vacio, nombre, children }) {
   if (vacio) {
     return (
       <div className="text-center py-5 text-muted" role="status">
-        <i className="fas fa-magnifying-glass fa-2x mb-3 d-block opacity-50" aria-hidden="true" />
+        <SearchX size={36} className="mb-3 opacity-50" aria-hidden="true" />
         No hay {nombre} que coincidan con los filtros.
       </div>
     );

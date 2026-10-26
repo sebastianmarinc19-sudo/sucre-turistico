@@ -1,6 +1,7 @@
 // Que muestra y que edita el panel para cada entidad. Un solo componente
 // (TablaCrud) lee esta configuracion, asi las cinco tablas se comportan igual.
 //
+// seccion: su clave en src/catalogo.js (icono, etiquetas y pagina de detalle).
 // columnas: lo que se ve en la tabla.  campos: el formulario de crear/editar.
 // Tipos de campo: texto, textarea, numero, fecha, opciones, municipio, lista.
 
@@ -13,6 +14,7 @@ const opciones = (...pares) => pares.map(([valor, etiqueta]) => ({ valor, etique
 export const ENTIDADES = [
   {
     clave: 'destinos',
+    seccion: 'destinos',
     titulo: 'Destinos',
     singular: 'destino',
     endpoint: '/api/destinos',
@@ -34,6 +36,7 @@ export const ENTIDADES = [
   },
   {
     clave: 'alojamientos',
+    seccion: 'alojamiento',
     titulo: 'Alojamientos',
     singular: 'alojamiento',
     endpoint: '/api/alojamientos',
@@ -62,6 +65,7 @@ export const ENTIDADES = [
   },
   {
     clave: 'gastronomia',
+    seccion: 'gastronomia',
     titulo: 'Gastronomía',
     singular: 'restaurante',
     endpoint: '/api/gastronomia',
@@ -90,6 +94,7 @@ export const ENTIDADES = [
   },
   {
     clave: 'experiencias',
+    seccion: 'experiencias',
     titulo: 'Experiencias',
     singular: 'experiencia',
     endpoint: '/api/experiencias',
@@ -115,6 +120,7 @@ export const ENTIDADES = [
   },
   {
     clave: 'eventos',
+    seccion: 'eventos',
     titulo: 'Eventos',
     singular: 'evento',
     endpoint: '/api/eventos',

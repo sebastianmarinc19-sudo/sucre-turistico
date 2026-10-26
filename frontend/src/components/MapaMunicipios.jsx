@@ -54,12 +54,15 @@ function MapaMunicipios({ lugares, alto = 420, destacado }) {
               <Popup>
                 <strong className="st-mapa-titulo">{municipio}</strong>
                 <ul className="st-mapa-lista">
-                  {items.slice(0, MAXIMO_EN_LISTA).map(({ seccion, registro }) => (
-                    <li key={`${seccion}-${registro.id}`}>
-                      <i className={`fas ${CATALOGO[seccion].icono}`} aria-hidden="true" />
-                      <Link to={rutaDetalle(seccion, registro)}>{registro.nombre}</Link>
-                    </li>
-                  ))}
+                  {items.slice(0, MAXIMO_EN_LISTA).map(({ seccion, registro }) => {
+                    const Icono = CATALOGO[seccion].icono;
+                    return (
+                      <li key={`${seccion}-${registro.id}`}>
+                        <Icono size={14} aria-hidden="true" />
+                        <Link to={rutaDetalle(seccion, registro)}>{registro.nombre}</Link>
+                      </li>
+                    );
+                  })}
                 </ul>
                 {items.length > MAXIMO_EN_LISTA && <small>y {items.length - MAXIMO_EN_LISTA} más</small>}
               </Popup>

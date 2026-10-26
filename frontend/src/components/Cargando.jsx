@@ -1,7 +1,8 @@
+import { Coffee } from 'lucide-react';
 export function AvisoDespertando() {
   return (
     <p className="st-aviso-espera" role="status">
-      <i className="fas fa-mug-hot" aria-hidden="true" /> Estamos despertando los servidores (son gratuitos y se duermen si nadie los usa). Puede tardar hasta medio minuto.
+      <Coffee size={18} aria-hidden="true" /> Estamos despertando los servidores (son gratuitos y se duermen si nadie los usa). Puede tardar hasta medio minuto.
     </p>
   );
 }

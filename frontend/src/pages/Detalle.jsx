@@ -1,3 +1,8 @@
+import {
+  ArrowLeft, BadgeCheck, Bath, BookOpen, CalendarDays, Check, Clock, Coffee, Compass, ConciergeBell, CookingPot,
+  Fan, Info, Lock, Map as IconoMapa, MapPin, Phone, ShowerHead, Snowflake, SquareParking, Star, Tag, Tent,
+  TriangleAlert, Users, Utensils, Wallet, Waves, Wifi,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api, { mensajeDeError } from '../api/client';
@@ -11,18 +16,18 @@ import { hoy, rangoDeFechas } from '../fechas';
 import { imagenDe } from '../imagenes';
 
 const ICONOS_SERVICIO = {
-  wifi: 'fa-wifi',
-  piscina: 'fa-person-swimming',
-  aire_acondicionado: 'fa-snowflake',
-  parqueadero: 'fa-square-parking',
-  restaurante: 'fa-utensils',
-  ventilador: 'fa-fan',
-  cocina: 'fa-kitchen-set',
-  desayuno: 'fa-mug-saucer',
-  lockers: 'fa-lock',
-  banos: 'fa-restroom',
-  duchas: 'fa-shower',
-  alquiler_carpas: 'fa-campground',
+  wifi: Wifi,
+  piscina: Waves,
+  aire_acondicionado: Snowflake,
+  parqueadero: SquareParking,
+  restaurante: Utensils,
+  ventilador: Fan,
+  cocina: CookingPot,
+  desayuno: Coffee,
+  lockers: Lock,
+  banos: Bath,
+  duchas: ShowerHead,
+  alquiler_carpas: Tent,
 };
 
 const MAXIMO_RELACIONADOS = 8;
@@ -32,30 +37,30 @@ const MAXIMO_RELACIONADOS = 8;
 function datosClave(seccion, r) {
   const filas = {
     destinos: [
-      ['fa-tag', 'Categoría', etiquetaDe(seccion, r)],
+      [Tag, 'Categoría', etiquetaDe(seccion, r)],
     ],
     alojamiento: [
-      ['fa-tag', 'Tipo', etiquetaDe(seccion, r)],
-      ['fa-star', 'Categoría', r.estrellas > 0 ? `${r.estrellas} ${r.estrellas === 1 ? 'estrella' : 'estrellas'}` : null],
-      ['fa-user-group', 'Capacidad', r.capacidad ? `Hasta ${r.capacidad} personas` : null],
-      ['fa-map-pin', 'Dirección', r.direccion],
-      ['fa-phone', 'Teléfono', r.telefono],
+      [Tag, 'Tipo', etiquetaDe(seccion, r)],
+      [Star, 'Categoría', r.estrellas > 0 ? `${r.estrellas} ${r.estrellas === 1 ? 'estrella' : 'estrellas'}` : null],
+      [Users, 'Capacidad', r.capacidad ? `Hasta ${r.capacidad} personas` : null],
+      [MapPin, 'Dirección', r.direccion],
+      [Phone, 'Teléfono', r.telefono],
     ],
     gastronomia: [
-      ['fa-utensils', 'Cocina', etiquetaDe(seccion, r)],
-      ['fa-wallet', 'Precios', RANGOS_PRECIO[r.rango_precio]?.texto],
-      ['fa-map-pin', 'Dirección', r.direccion],
-      ['fa-phone', 'Teléfono', r.telefono],
+      [Utensils, 'Cocina', etiquetaDe(seccion, r)],
+      [Wallet, 'Precios', RANGOS_PRECIO[r.rango_precio]?.texto],
+      [MapPin, 'Dirección', r.direccion],
+      [Phone, 'Teléfono', r.telefono],
     ],
     experiencias: [
-      ['fa-tag', 'Tipo', etiquetaDe(seccion, r)],
-      ['fa-clock', 'Duración', r.duracion_horas != null ? `${Number(r.duracion_horas).toLocaleString('es-CO')} horas` : null],
-      ['fa-id-badge', 'Operador', r.operador],
+      [Tag, 'Tipo', etiquetaDe(seccion, r)],
+      [Clock, 'Duración', r.duracion_horas != null ? `${Number(r.duracion_horas).toLocaleString('es-CO')} horas` : null],
+      [BadgeCheck, 'Operador', r.operador],
     ],
     eventos: [
-      ['fa-tag', 'Tipo', etiquetaDe(seccion, r)],
-      ['fa-calendar-days', 'Fechas', rangoDeFechas(r.fecha_inicio, r.fecha_fin)],
-      ['fa-location-dot', 'Lugar', r.lugar],
+      [Tag, 'Tipo', etiquetaDe(seccion, r)],
+      [CalendarDays, 'Fechas', rangoDeFechas(r.fecha_inicio, r.fecha_fin)],
+      [MapPin, 'Lugar', r.lugar],
     ],
   }[seccion];
   return filas.filter(([, , valor]) => valor);
@@ -90,7 +95,7 @@ function Carta({ platos }) {
   if (!platos?.length) return null;
   return (
     <section className="st-detalle-bloque">
-      <h2><i className="fas fa-book-open" aria-hidden="true" /> Carta</h2>
+      <h2><BookOpen size={16} aria-hidden="true" /> Carta</h2>
       <ul className="st-carta">
         {platos.map((p) => (
           <li key={p.id}>
@@ -111,11 +116,12 @@ function Servicios({ servicios }) {
   if (!Array.isArray(servicios) || servicios.length === 0) return null;
   return (
     <section className="st-detalle-bloque">
-      <h2><i className="fas fa-bell-concierge" aria-hidden="true" /> Servicios</h2>
+      <h2><ConciergeBell size={16} aria-hidden="true" /> Servicios</h2>
       <ul className="st-servicios">
-        {servicios.map((s) => (
-          <li key={s}><i className={`fas ${ICONOS_SERVICIO[s] || 'fa-check'}`} aria-hidden="true" /> {s.replace(/_/g, ' ')}</li>
-        ))}
+        {servicios.map((s) => {
+          const Icono = ICONOS_SERVICIO[s] || Check;
+          return <li key={s}><span><Icono size={16} aria-hidden="true" /></span> {s.replace(/_/g, ' ')}</li>;
+        })}
       </ul>
     </section>
   );
@@ -155,9 +161,10 @@ function Detalle({ seccion }) {
   }, [registro]);
 
   if (noExiste || error) {
+    const Icono = noExiste ? Compass : TriangleAlert;
     return (
       <section className="container text-center py-5">
-        <i className={`fas ${noExiste ? 'fa-compass' : 'fa-triangle-exclamation'} fa-3x mb-3 text-muted opacity-50`} aria-hidden="true" />
+        <Icono size={48} className="mb-3 text-muted opacity-50" aria-hidden="true" />
         <h1 className="h3">{noExiste ? `No encontramos este ${config.singular}` : `No se pudo cargar el ${config.singular}`}</h1>
         <p className="text-muted">{noExiste ? 'Puede que lo hayan quitado del catálogo.' : error}</p>
         <Link to={config.ruta} className="btn btn-primary">Ver {config.titulo.toLowerCase()}</Link>
@@ -196,7 +203,7 @@ function Detalle({ seccion }) {
           </nav>
           <span className="st-badge">{etiquetaDe(seccion, r)}</span>
           <h1>{r.nombre}</h1>
-          <p><i className="fas fa-location-dot" aria-hidden="true" /> {r.municipio}, Sucre</p>
+          <p><MapPin size={16} aria-hidden="true" /> {r.municipio}, Sucre</p>
         </div>
       </header>
 
@@ -204,13 +211,13 @@ function Detalle({ seccion }) {
         <div className="row g-4">
           <div className="col-12 col-lg-8">
             <section className="st-detalle-bloque">
-              <h2><i className="fas fa-circle-info" aria-hidden="true" /> Descripción</h2>
+              <h2><Info size={16} aria-hidden="true" /> Descripción</h2>
               <p className="st-detalle-texto">{r.descripcion || 'Este lugar todavía no tiene descripción.'}</p>
             </section>
             {seccion === 'alojamiento' && <Servicios servicios={r.servicios} />}
             {seccion === 'gastronomia' && <Carta platos={r.platos} />}
             <section className="st-detalle-bloque">
-              <h2><i className="fas fa-map" aria-hidden="true" /> Ubicación</h2>
+              <h2><IconoMapa size={16} aria-hidden="true" /> Ubicación</h2>
               <p className="text-muted small mb-2">El punto marca el municipio: {r.municipio}.</p>
               <MapaMunicipios lugares={[{ seccion, registro: r }]} alto={260} destacado={r.municipio} />
             </section>
@@ -224,19 +231,19 @@ function Detalle({ seccion }) {
                 </p>
               )}
               <dl>
-                {filas.map(([icono, etiqueta, valor]) => (
+                {filas.map(([Icono, etiqueta, valor]) => (
                   <div key={etiqueta}>
-                    <dt><i className={`fas ${icono}`} aria-hidden="true" /> {etiqueta}</dt>
+                    <dt><Icono size={14} aria-hidden="true" /> {etiqueta}</dt>
                     <dd>{valor}</dd>
                   </div>
                 ))}
                 <div>
-                  <dt><i className="fas fa-location-dot" aria-hidden="true" /> Municipio</dt>
+                  <dt><MapPin size={16} aria-hidden="true" /> Municipio</dt>
                   <dd>{r.municipio}</dd>
                 </div>
               </dl>
               <Link to={config.ruta} className="btn btn-outline-primary w-100">
-                <i className="fas fa-arrow-left" aria-hidden="true" /> Volver a {config.titulo}
+                <ArrowLeft size={16} aria-hidden="true" /> Volver a {config.titulo}
               </Link>
             </div>
           </aside>
