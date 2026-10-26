@@ -1,18 +1,19 @@
-import { CalendarDays, Ellipsis, House, MapPinned, Search, UserRound } from 'lucide-react';
+import { Ellipsis, Heart, House, MapPinned, Search, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import { NavLink } from 'react-router-dom';
+import { abrirBuscadorRapido } from '../buscadorRapido';
 import { SECCIONES } from '../secciones';
 
+// Cinco lugares: dos pestanas, Buscar en el centro, Favoritos y "Mas" (el
+// resto de secciones, entre ellas Eventos, va en la hoja que abre "Mas").
 const PESTANAS = [
   { ruta: '/', texto: 'Inicio', icono: House, exacta: true },
   { ruta: '/destinos', texto: 'Destinos', icono: MapPinned },
-  { ruta: '/buscar', texto: 'Buscar', icono: Search },
-  { ruta: '/eventos', texto: 'Eventos', icono: CalendarDays },
+  { ruta: '/favoritos', texto: 'Favoritos', icono: Heart },
 ];
 
-// Barra de navegacion fija abajo, solo en celular (como Airbnb o Rappi):
-// lo mas usado a un toque, y el resto en el panel que se abre con "Mas".
+// Barra de navegacion fija abajo, solo en celular (como Airbnb o Rappi).
 function BarraInferior() {
   const [abierto, setAbierto] = useState(false);
   const cerrar = () => setAbierto(false);
@@ -20,8 +21,19 @@ function BarraInferior() {
   return (
     <>
       <nav className="st-barra-inferior" aria-label="Navegación principal">
-        {PESTANAS.map(({ ruta, texto, icono: Icono, exacta }) => (
+        {PESTANAS.slice(0, 2).map(({ ruta, texto, icono: Icono, exacta }) => (
           <NavLink key={ruta} to={ruta} end={exacta}>
+            <Icono size={22} aria-hidden="true" />
+            <span>{texto}</span>
+          </NavLink>
+        ))}
+        {/* Buscar va en el centro, destacado: abre el buscador instantaneo. */}
+        <button type="button" className="st-barra-buscar" onClick={() => abrirBuscadorRapido()}>
+          <span><Search size={22} aria-hidden="true" /></span>
+          <span>Buscar</span>
+        </button>
+        {PESTANAS.slice(2).map(({ ruta, texto, icono: Icono }) => (
+          <NavLink key={ruta} to={ruta}>
             <Icono size={22} aria-hidden="true" />
             <span>{texto}</span>
           </NavLink>

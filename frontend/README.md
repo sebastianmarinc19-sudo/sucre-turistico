@@ -64,10 +64,14 @@ Sobre Bootstrap se suman librerías que lo complementan, sin reemplazarlo:
 | `lucide-react` | Íconos (se importan uno por uno, solo pesan los que se usan) |
 | `motion` | Animaciones: entrada de páginas y tarjetas. Se carga con `LazyMotion` y respeta "reducir movimiento" del sistema |
 | `sonner` | Avisos flotantes ("Cambios guardados") |
-| `swiper` | Carruseles |
+| `swiper` | Carruseles y la portada con fotos que rotan |
 | `react-leaflet` | Mapas de OpenStreetMap |
+| `cmdk` | Buscador instantáneo (`Ctrl+K`, la lupa o el buscador de la portada): filtra en el navegador los cinco catálogos, sin tildes ni mayúsculas, así que funciona aunque Elasticsearch no esté |
+| `yet-another-react-lightbox` | Foto a pantalla completa con zoom en el detalle |
 
 En el celular, el menú es una barra inferior fija (`BarraInferior.jsx`), como en una app.
+
+Otros detalles: **favoritos** guardados en el navegador sin crear cuenta (`favoritos.js`, página `/favoritos`), **clima en vivo** de cada municipio con [Open-Meteo](https://open-meteo.com) (gratis, sin clave; `Clima.jsx`), y en el detalle botones de **compartir** (menú nativo del celular) y **WhatsApp** (si el lugar tiene celular registrado, abre el chat con él).
 
 ## El patrón a seguir
 

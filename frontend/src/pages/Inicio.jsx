@@ -1,11 +1,13 @@
 import { ArrowRight, Search } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
+import { abrirBuscadorRapido } from '../buscadorRapido';
 import { CATALOGO } from '../catalogo';
-import { IMAGEN_HERO } from '../imagenes';
 import { TarjetasEsqueleto } from '../components/Cargando';
 import Carrusel from '../components/Carrusel';
+import Clima from '../components/Clima';
+import PortadaRotativa from '../components/PortadaRotativa';
 import TarjetaDestino from '../components/TarjetaDestino';
 import TarjetaEvento from '../components/TarjetaEvento';
 import { hoy } from '../fechas';
@@ -14,17 +16,14 @@ import { hoy } from '../fechas';
 const MapaMunicipios = lazy(() => import('../components/MapaMunicipios'));
 
 const CATEGORIAS = [
-  { clave: 'destinos', seccion: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', color: 'azul', unidad: 'destinos', tipoBuscador: 'destino' },
-  { clave: 'alojamientos', seccion: 'alojamiento', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', color: 'cian', unidad: 'alojamientos', tipoBuscador: 'alojamiento' },
-  { clave: 'gastronomia', seccion: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', color: 'naranja', unidad: 'restaurantes', tipoBuscador: 'restaurante' },
-  { clave: 'experiencias', seccion: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', color: 'morado', unidad: 'actividades', tipoBuscador: 'experiencia' },
-  { clave: 'eventos', seccion: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', color: 'verde', unidad: 'eventos', tipoBuscador: 'evento' },
+  { clave: 'destinos', seccion: 'destinos', endpoint: '/api/destinos', ruta: '/destinos', titulo: 'Destinos', color: 'azul', unidad: 'destinos' },
+  { clave: 'alojamientos', seccion: 'alojamiento', endpoint: '/api/alojamientos', ruta: '/alojamiento', titulo: 'Alojamiento', color: 'cian', unidad: 'alojamientos' },
+  { clave: 'gastronomia', seccion: 'gastronomia', endpoint: '/api/gastronomia', ruta: '/gastronomia', titulo: 'Gastronomía', color: 'naranja', unidad: 'restaurantes' },
+  { clave: 'experiencias', seccion: 'experiencias', endpoint: '/api/experiencias', ruta: '/experiencias', titulo: 'Experiencias', color: 'morado', unidad: 'actividades' },
+  { clave: 'eventos', seccion: 'eventos', endpoint: '/api/eventos', ruta: '/eventos', titulo: 'Eventos', color: 'verde', unidad: 'eventos' },
 ];
 
 function Inicio() {
-  const navigate = useNavigate();
-  const [texto, setTexto] = useState('');
-  const [tipo, setTipo] = useState('');
   // { destinos: [...], ... } a medida que llegan; undefined = cargando, null = fallo.
   const [listas, setListas] = useState({});
 
@@ -39,14 +38,6 @@ function Inicio() {
     return () => { cancelado = true; };
   }, []);
 
-  function buscar(e) {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (texto.trim()) params.set('q', texto.trim());
-    if (tipo) params.set('tipo', tipo);
-    navigate(`/buscar?${params}`);
-  }
-
   const cantidad = (clave) => (Array.isArray(listas[clave]) ? listas[clave].length : '—');
   const destinos = listas.destinos;
   const eventos = listas.eventos;
@@ -58,21 +49,19 @@ function Inicio() {
   return (
     <>
       <section className="st-hero">
-        <img className="st-hero-bg" src={IMAGEN_HERO} alt="" />
+        <PortadaRotativa />
         <div className="st-hero-capa" />
         <div className="st-hero-contenido">
+          <Clima municipio="Coveñas" />
           <p className="st-hero-eyebrow">Golfo de Morrosquillo, Colombia</p>
           <h1>Descubre el Paraíso <span>Caribeño</span></h1>
           <p className="st-hero-sub">Planifica tu próxima aventura en el corazón del Caribe colombiano.</p>
-          <form className="st-buscador-hero" role="search" onSubmit={buscar}>
-            <input type="search" placeholder="¿A dónde quieres ir?" aria-label="Qué buscas" value={texto} onChange={(e) => setTexto(e.target.value)} />
-            <span className="divisor" />
-            <select aria-label="Qué tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-              <option value="">Todo</option>
-              {CATEGORIAS.map((c) => <option key={c.clave} value={c.tipoBuscador}>{c.titulo}</option>)}
-            </select>
-            <button type="submit"><Search size={18} aria-hidden="true" /> <span>Buscar</span></button>
-          </form>
+          {/* Abre el buscador instantaneo: responde mientras se escribe. */}
+          <button type="button" className="st-buscador-hero" onClick={() => abrirBuscadorRapido()}>
+            <Search size={18} className="text-muted" aria-hidden="true" />
+            <span className="st-buscador-hero-texto">¿A dónde quieres ir? Playas, hoteles, restaurantes…</span>
+            <span className="st-buscador-hero-boton"><Search size={18} aria-hidden="true" /> <span>Buscar</span></span>
+          </button>
           <div className="st-hero-stats">
             {CATEGORIAS.slice(0, 4).map((c) => (
               <div key={c.clave}><strong>{cantidad(c.clave)}</strong><span>{c.titulo}</span></div>
