@@ -1,7 +1,4 @@
-export const SECCIONES = [
-  { ruta: '/destinos', texto: 'Destinos', icono: 'fa-map-location-dot' },
-  { ruta: '/alojamiento', texto: 'Alojamiento', icono: 'fa-hotel' },
-  { ruta: '/gastronomia', texto: 'Gastronomía', icono: 'fa-utensils' },
-  { ruta: '/experiencias', texto: 'Experiencias', icono: 'fa-person-hiking' },
-  { ruta: '/eventos', texto: 'Eventos', icono: 'fa-calendar-days' },
-];
+import { CATALOGO } from './catalogo';
+
+// Las 5 secciones del menu, en el orden en que se muestran.
+export const SECCIONES = Object.values(CATALOGO).map(({ ruta, titulo, icono }) => ({ ruta, texto: titulo, icono }));

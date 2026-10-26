@@ -1,3 +1,5 @@
+import { CalendarDays, Hotel, MapPinned, Mountain, Utensils } from 'lucide-react';
+
 // Lo que cada seccion del catalogo necesita saber de si misma: de donde salen
 // sus datos, como se llama su columna de clasificacion y como se muestra.
 // Las tarjetas, la pagina de detalle y el mapa leen de aqui, para que una
@@ -9,7 +11,7 @@ export const CATALOGO = {
     endpoint: '/api/destinos',
     titulo: 'Destinos',
     singular: 'destino',
-    icono: 'fa-map-location-dot',
+    icono: MapPinned,
     campoCategoria: 'categoria',
     etiquetas: {
       playa: 'Playa',
@@ -23,7 +25,7 @@ export const CATALOGO = {
     endpoint: '/api/alojamientos',
     titulo: 'Alojamiento',
     singular: 'alojamiento',
-    icono: 'fa-hotel',
+    icono: Hotel,
     campoCategoria: 'tipo',
     etiquetas: { hotel: 'Hotel', hostal: 'Hostal', posada: 'Posada', cabana: 'Cabaña', camping: 'Camping' },
   },
@@ -32,7 +34,7 @@ export const CATALOGO = {
     endpoint: '/api/gastronomia',
     titulo: 'Gastronomía',
     singular: 'restaurante',
-    icono: 'fa-utensils',
+    icono: Utensils,
     campoCategoria: 'tipo_cocina',
     etiquetas: {
       tipica: 'Típica',
@@ -47,7 +49,7 @@ export const CATALOGO = {
     endpoint: '/api/experiencias',
     titulo: 'Experiencias',
     singular: 'experiencia',
-    icono: 'fa-person-hiking',
+    icono: Mountain,
     campoCategoria: 'tipo',
     etiquetas: {
       acuatica: 'Acuática',
@@ -62,7 +64,7 @@ export const CATALOGO = {
     endpoint: '/api/eventos',
     titulo: 'Eventos',
     singular: 'evento',
-    icono: 'fa-calendar-days',
+    icono: CalendarDays,
     campoCategoria: 'tipo',
     etiquetas: { festival: 'Festival', feria: 'Feria', religioso: 'Religioso', cultural: 'Cultural', deportivo: 'Deportivo' },
   },

@@ -1,5 +1,12 @@
+import { Eye, ImageOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Modal from 'react-bootstrap/Modal';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import api, { mensajeDeError } from '../api/client';
+import { CATALOGO, categoriaDe, pesos, RANGOS_PRECIO, rutaDetalle } from '../catalogo';
+import { rangoDeFechas } from '../fechas';
+import { imagenDe } from '../imagenes';
 
 // Pasa una fila de la API a los valores del formulario (todo como texto).
 function aFormulario(campos, fila) {
@@ -22,6 +29,19 @@ function aCuerpo(campos, valores) {
     else cuerpo[c.nombre] = v === '' ? null : v;
   }
   return cuerpo;
+}
+
+// Como se ve cada celda: etiquetas en vez de claves, precios con formato.
+function Celda({ seccion, columna, fila }) {
+  const valor = fila[columna];
+  if (valor == null || valor === '') return <span className="text-muted">—</span>;
+  if (columna === CATALOGO[seccion].campoCategoria) {
+    return <span className="st-badge suave">{CATALOGO[seccion].etiquetas[valor] || valor}</span>;
+  }
+  if (columna === 'rango_precio') return RANGOS_PRECIO[valor]?.texto || valor;
+  if (columna.startsWith('precio')) return pesos(valor);
+  if (columna.startsWith('fecha')) return rangoDeFechas(valor);
+  return valor;
 }
 
 function Campo({ campo, valor, onChange, municipios }) {
@@ -47,7 +67,7 @@ function Campo({ campo, valor, onChange, municipios }) {
   }
 
   return (
-    <div className={campo.tipo === 'textarea' ? 'col-12' : 'col-12 col-md-6'}>
+    <div className={campo.tipo === 'textarea' || campo.nombre === 'imagen_url' ? 'col-12' : 'col-12 col-md-6'}>
       <label className="form-label small" htmlFor={id}>
         {campo.etiqueta}{campo.obligatorio && <span className="text-danger"> *</span>}
       </label>
@@ -56,23 +76,43 @@ function Campo({ campo, valor, onChange, municipios }) {
   );
 }
 
-function TablaCrud({ entidad }) {
-  const { endpoint, columnas, campos, singular, titulo } = entidad;
+// Vista previa de la URL de imagen que se esta escribiendo.
+function VistaPrevia({ url }) {
+  const [rota, setRota] = useState(false);
+  if (!url) return null;
+  return (
+    <div className="col-12">
+      <div className="st-vista-previa">
+        {rota
+          ? <span><ImageOff size={20} aria-hidden="true" /> No se pudo cargar esa imagen. Revisa que la URL sea pública y termine en una foto.</span>
+          : <img key={url} src={url} alt="Vista previa" onError={() => setRota(true)} />}
+      </div>
+    </div>
+  );
+}
+
+function TablaCrud({ entidad, onCambio }) {
+  const { endpoint, columnas, campos, singular, titulo, seccion } = entidad;
 
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [municipios, setMunicipios] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
 
-  // null = formulario cerrado; { id, valores } = abierto (id null si es nuevo).
+  // null = cerrado; { id, valores } = abierto (id null si es nuevo).
   const [formulario, setFormulario] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const [errorFormulario, setErrorFormulario] = useState(null);
-  const [aviso, setAviso] = useState(null);
+  const [porBorrar, setPorBorrar] = useState(null);
+  const [borrando, setBorrando] = useState(false);
 
   // Subirlo vuelve a pedir la lista (despues de crear, editar o eliminar).
   const [version, setVersion] = useState(0);
-  const recargar = () => setVersion((v) => v + 1);
+  const recargar = () => {
+    setVersion((v) => v + 1);
+    onCambio?.();
+  };
 
   useEffect(() => {
     api.get(`${endpoint}/catalogos/municipios`)
@@ -91,7 +131,6 @@ function TablaCrud({ entidad }) {
 
   function abrir(fila) {
     setErrorFormulario(null);
-    setAviso(null);
     setFormulario({ id: fila?.id ?? null, valores: aFormulario(campos, fila) });
   }
 
@@ -107,7 +146,7 @@ function TablaCrud({ entidad }) {
       const cuerpo = aCuerpo(campos, formulario.valores);
       if (formulario.id) await api.put(`${endpoint}/${formulario.id}`, cuerpo);
       else await api.post(endpoint, cuerpo);
-      setAviso(formulario.id ? `Se guardaron los cambios.` : `Se creó el ${singular}.`);
+      toast.success(formulario.id ? 'Cambios guardados' : `Se creó el ${singular}`, { description: cuerpo.nombre });
       setFormulario(null);
       recargar();
     } catch (err) {
@@ -117,81 +156,87 @@ function TablaCrud({ entidad }) {
     }
   }
 
-  async function eliminar(fila) {
-    if (!window.confirm(`¿Eliminar "${fila.nombre}"? Dejará de verse en el sitio.`)) return;
-    setAviso(null);
+  async function eliminar() {
+    setBorrando(true);
     try {
-      await api.delete(`${endpoint}/${fila.id}`);
-      setAviso(`Se eliminó "${fila.nombre}".`);
+      await api.delete(`${endpoint}/${porBorrar.id}`);
+      toast.success(`Se eliminó "${porBorrar.nombre}"`);
+      setPorBorrar(null);
       recargar();
     } catch (err) {
-      setError(mensajeDeError(err));
+      toast.error('No se pudo eliminar', { description: mensajeDeError(err) });
+    } finally {
+      setBorrando(false);
     }
   }
 
+  const texto = busqueda.trim().toLowerCase();
+  const visibles = texto
+    ? filas.filter((f) => `${f.nombre} ${f.municipio}`.toLowerCase().includes(texto))
+    : filas;
+  // La primera columna (nombre) va junto a la foto; el resto, cada una en la suya.
+  const otrasColumnas = columnas.filter((c) => c.nombre !== 'nombre' && c.nombre !== 'municipio');
+
   return (
-    <section>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="h4 mb-0">{titulo}</h2>
-        {!formulario && (
+    <section className="st-tabla-tarjeta">
+      <div className="st-tabla-barra">
+        <div>
+          <h2>{titulo}</h2>
+          <p>{cargando ? 'Cargando…' : `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'}`}</p>
+        </div>
+        <div className="st-tabla-controles">
+          <label className="st-busqueda">
+            <Search size={16} aria-hidden="true" />
+            <input type="search" placeholder={`Buscar en ${titulo.toLowerCase()}…`} aria-label={`Buscar en ${titulo}`}
+              value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          </label>
           <button type="button" className="btn btn-primary btn-sm" onClick={() => abrir(null)}>
-            Nuevo {singular}
+            <Plus size={16} aria-hidden="true" /> Nuevo {singular}
           </button>
-        )}
+        </div>
       </div>
 
-      {aviso && <div className="alert alert-success py-2 small" role="status">{aviso}</div>}
-
-      {formulario && (
-        <form className="card card-body mb-4" onSubmit={guardar}>
-          <h3 className="h6">{formulario.id ? `Editar ${singular}` : `Nuevo ${singular}`}</h3>
-          <div className="row g-3">
-            {campos.map((c) => (
-              <Campo key={c.nombre} campo={c} valor={formulario.valores[c.nombre]} onChange={cambiar} municipios={municipios} />
-            ))}
-          </div>
-          {errorFormulario && <div className="alert alert-warning small mt-3 mb-0" role="alert">{errorFormulario}</div>}
-          <div className="d-flex gap-2 mt-3">
-            <button type="submit" className="btn btn-primary btn-sm" disabled={guardando}>
-              {guardando ? 'Guardando…' : 'Guardar'}
-            </button>
-            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setFormulario(null)} disabled={guardando}>
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
-
       {cargando && (
-        <div className="text-center py-4">
-          <div className="spinner-border text-secondary" role="status">
-            <span className="visually-hidden">Cargando…</span>
-          </div>
+        <div className="text-center py-5">
+          <div className="spinner-border" role="status"><span className="visually-hidden">Cargando…</span></div>
         </div>
       )}
 
-      {!cargando && error && <div className="alert alert-warning" role="alert">{error}</div>}
+      {!cargando && error && <div className="alert alert-warning m-3" role="alert">{error}</div>}
 
-      {!cargando && !error && filas.length === 0 && (
-        <div className="alert alert-light border text-center">Todavía no hay registros.</div>
+      {!cargando && !error && visibles.length === 0 && (
+        <p className="text-center text-muted py-5 mb-0">
+          {filas.length === 0 ? 'Todavía no hay registros.' : `Nada coincide con "${busqueda}".`}
+        </p>
       )}
 
-      {!cargando && !error && filas.length > 0 && (
+      {!cargando && !error && visibles.length > 0 && (
         <div className="table-responsive">
-          <table className="table table-sm align-middle">
+          <table className="table st-tabla align-middle mb-0">
             <thead>
               <tr>
-                {columnas.map((c) => <th key={c.nombre} scope="col">{c.etiqueta}</th>)}
+                <th scope="col">Nombre</th>
+                {otrasColumnas.map((c) => <th key={c.nombre} scope="col">{c.etiqueta}</th>)}
                 <th scope="col" className="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filas.map((fila) => (
+              {visibles.map((fila) => (
                 <tr key={fila.id}>
-                  {columnas.map((c) => <td key={c.nombre}>{fila[c.nombre] ?? '—'}</td>)}
+                  <td>
+                    <div className="st-tabla-nombre">
+                      <img src={imagenDe(fila, categoriaDe(seccion, fila), 96, 96)} alt="" loading="lazy" />
+                      <div>
+                        <strong>{fila.nombre}</strong>
+                        <small>{fila.municipio}</small>
+                      </div>
+                    </div>
+                  </td>
+                  {otrasColumnas.map((c) => <td key={c.nombre}><Celda seccion={seccion} columna={c.nombre} fila={fila} /></td>)}
                   <td className="text-end text-nowrap">
-                    <button type="button" className="btn btn-link btn-sm" onClick={() => abrir(fila)}>Editar</button>
-                    <button type="button" className="btn btn-link btn-sm text-danger" onClick={() => eliminar(fila)}>Eliminar</button>
+                    <Link to={rutaDetalle(seccion, fila)} className="st-accion" title="Ver en el sitio" aria-label={`Ver ${fila.nombre} en el sitio`}><Eye size={17} /></Link>
+                    <button type="button" className="st-accion" title="Editar" aria-label={`Editar ${fila.nombre}`} onClick={() => abrir(fila)}><Pencil size={17} /></button>
+                    <button type="button" className="st-accion peligro" title="Eliminar" aria-label={`Eliminar ${fila.nombre}`} onClick={() => setPorBorrar(fila)}><Trash2 size={17} /></button>
                   </td>
                 </tr>
               ))}
@@ -199,6 +244,43 @@ function TablaCrud({ entidad }) {
           </table>
         </div>
       )}
+
+      <Modal show={Boolean(formulario)} onHide={() => !guardando && setFormulario(null)} size="lg" centered scrollable>
+        {formulario && (
+          <form onSubmit={guardar} className="d-contents">
+            <Modal.Header closeButton>
+              <Modal.Title as="h3" className="h5">{formulario.id ? `Editar ${singular}` : `Nuevo ${singular}`}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="row g-3">
+                {campos.map((c) => (
+                  <Campo key={c.nombre} campo={c} valor={formulario.valores[c.nombre]} onChange={cambiar} municipios={municipios} />
+                ))}
+                <VistaPrevia key={formulario.valores.imagen_url} url={formulario.valores.imagen_url?.trim()} />
+              </div>
+              {errorFormulario && <div className="alert alert-warning small mt-3 mb-0" role="alert">{errorFormulario}</div>}
+            </Modal.Body>
+            <Modal.Footer>
+              <button type="button" className="btn btn-light" onClick={() => setFormulario(null)} disabled={guardando}>Cancelar</button>
+              <button type="submit" className="btn btn-primary" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar'}</button>
+            </Modal.Footer>
+          </form>
+        )}
+      </Modal>
+
+      <Modal show={Boolean(porBorrar)} onHide={() => !borrando && setPorBorrar(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title as="h3" className="h5">¿Eliminar este {singular}?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <strong>{porBorrar?.nombre}</strong> dejará de verse en el sitio. Queda guardado en la base
+          (se marca como inactivo), así que se puede recuperar si fue un error.
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button" className="btn btn-light" onClick={() => setPorBorrar(null)} disabled={borrando}>Cancelar</button>
+          <button type="button" className="btn btn-danger" onClick={eliminar} disabled={borrando}>{borrando ? 'Eliminando…' : 'Eliminar'}</button>
+        </Modal.Footer>
+      </Modal>
     </section>
   );
 }

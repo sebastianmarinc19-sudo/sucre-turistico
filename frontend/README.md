@@ -54,7 +54,20 @@ src/
 
 **Mapa.** La base no guarda coordenadas por lugar, así que el mapa ubica cada registro en el centro de su municipio (`COORDENADAS_MUNICIPIO`). Si algún día se agregan `latitud`/`longitud` a las tablas, basta con usarlas en `MapaMunicipios.jsx`.
 
-El diseño sigue el prototipo de interfaz (`mokud/`): mismos colores, tipografías (Poppins e Inter), íconos (Font Awesome) y componentes. Los estilos propios llevan el prefijo `st-` para no chocar con los de Bootstrap, que sigue haciendo la grilla y los formularios.
+El diseño sigue el prototipo de interfaz (`mokud/`): mismos colores, tipografías (Poppins e Inter) y componentes. Los estilos propios llevan el prefijo `st-` para no chocar con los de Bootstrap, que sigue haciendo la grilla y los formularios.
+
+Sobre Bootstrap se suman librerías que lo complementan, sin reemplazarlo:
+
+| Librería | Para qué |
+|---|---|
+| `react-bootstrap` | Componentes de Bootstrap en React: modales del panel y la hoja "Más" del celular |
+| `lucide-react` | Íconos (se importan uno por uno, solo pesan los que se usan) |
+| `motion` | Animaciones: entrada de páginas y tarjetas. Se carga con `LazyMotion` y respeta "reducir movimiento" del sistema |
+| `sonner` | Avisos flotantes ("Cambios guardados") |
+| `swiper` | Carruseles |
+| `react-leaflet` | Mapas de OpenStreetMap |
+
+En el celular, el menú es una barra inferior fija (`BarraInferior.jsx`), como en una app.
 
 ## El patrón a seguir
 
