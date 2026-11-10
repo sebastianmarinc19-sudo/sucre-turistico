@@ -13,9 +13,9 @@
 | eventos-service | Render (free) | ✅ Desplegado | https://sucre-turistico-eventos-service.onrender.com |
 | buscador-service | Render (free) | ✅ Desplegado | https://sucre-turistico-buscador-service.onrender.com |
 | Base de datos MySQL | TiDB Cloud Starter (free, MySQL-compatible) | ✅ Creada | ver credenciales en Render → Environment Groups → `mysql-tidb`, o en TiDB Cloud |
-| Elasticsearch | — | ⏳ Pendiente (a propósito, ver abajo) | — |
+| Elasticsearch | Elastic Cloud **Serverless** (prueba gratis de 14 días), AWS us-east-1 | ✅ Conectado (10 nov 2026) | proyecto `My Elasticsearch project` — endpoint en `ELASTICSEARCH_HOST` del buscador en Render |
 
-Todo lo anterior corre en planes **$0/mes**, sin tarjeta.
+Todo lo anterior corre en planes **$0/mes**, sin tarjeta. **Ojo:** la prueba de Elastic Cloud vence a los 14 días de creada (hacia el **24 de noviembre de 2026**). Después de esa fecha el buscador avanzado (`/buscar`) responde "no disponible", pero el resto del sitio sigue funcionando, incluido el buscador instantáneo (`Ctrl+K`), que no usa Elasticsearch.
 
 ## Cómo quedó armado
 
@@ -88,19 +88,20 @@ Pide la contraseña de TiDB sin mostrarla, aplica los archivos **en este orden**
 El orden importa: `03` tiene llaves foráneas hacia `municipios`, así que `02` va primero.
 - **En local (docker-compose) sigue usando el MySQL del contenedor**, no la nube — son ambientes separados a propósito, para no gastar la cuota gratis de TiDB con pruebas locales.
 
-### Elasticsearch → pendiente a propósito
-Elastic Cloud solo da **14 días gratis**, que empiezan a contar al crear la cuenta. Por eso `buscador-service` se desarrolló y probó en local (Elasticsearch en docker-compose) y se despliega **pocos días antes de la entrega final**.
+### Elasticsearch → Elastic Cloud Serverless
+Elastic Cloud solo da **14 días gratis**, que empiezan a contar al crear la cuenta. Por eso `buscador-service` se desarrolló y probó en local (Elasticsearch en docker-compose) y se desplegó **cerca de la entrega**: el 10 de noviembre de 2026, en un proyecto **Serverless** de tipo Elasticsearch (General purpose), AWS us-east-1, la misma región que TiDB. El cliente `@elastic/elasticsearch` 8.x funciona igual contra Serverless; el índice solo usa configuración de analizadores, que Serverless permite.
 
-Cuando toque desplegarlo:
+Cómo se hizo (sirve para repetirlo si vence la prueba y se crea otra cuenta):
 
-1. En [cloud.elastic.co](https://cloud.elastic.co) crear un deployment (Elasticsearch 8.x). Copiar el **endpoint de Elasticsearch** y crear una **API key**.
+1. En [cloud.elastic.co](https://cloud.elastic.co) crear un proyecto **Serverless → Elasticsearch → General purpose**. En la página del proyecto, **Application endpoints → Elasticsearch** da el endpoint (usar el público, no el que dice `.private.`); **API keys → Create API key** da la clave (copiar la versión *Encoded*).
 2. En Render, servicio `sucre-turistico-buscador-service` → Environment:
    - `ELASTICSEARCH_HOST` = el endpoint (empieza por `https://`)
    - `ELASTICSEARCH_API_KEY` = la API key (en base64, tal como la entrega Elastic)
    - `DESTINOS_URL`, `ALOJAMIENTO_URL`, `GASTRONOMIA_URL`, `EXPERIENCIAS_URL`, `EVENTOS_URL` = las URLs públicas de cada microservicio (las de la tabla de arriba). El buscador indexa leyendo sus APIs.
-3. Merge a `main` para que Render redespliegue. Al arrancar, si el índice `turismo_index` no existe, se crea y se llena solo.
+3. **Save, rebuild, and deploy.** Al arrancar, si el índice `turismo_index` no existe, se crea y se llena solo (tarda ~1 min si los servicios estaban dormidos).
 4. Después de crear o editar contenido en el panel, usar **"Actualizar buscador"** (o `POST /api/buscador/reindexar` con token de admin).
-5. Agregar el buscador a la lista de `frontend/src/api/despertar.js` y de `scripts/probar-produccion.js`, para que también se despierte y se pruebe.
+
+El buscador también está en `frontend/src/api/despertar.js` y en `scripts/probar-produccion.js`, que prueba búsqueda, facets, sugerencias y que reindexar sin pasar por el gateway se rechace.
 
 ## Comprobar que producción funciona
 
@@ -124,10 +125,10 @@ El despliegue real ya lo hacen Vercel y Render por su cuenta: los dos están con
 - [x] Base de datos MySQL (TiDB Cloud) creada y enlazada.
 - [x] `VITE_API_URL` en Vercel apuntando al backend.
 - [x] `JWT_SECRET` en el API Gateway.
-- [ ] `GATEWAY_SECRET` en el gateway y los 6 microservicios (Environment Group `gateway-secret`, pasos arriba).
+- [x] `GATEWAY_SECRET` en el gateway y los 6 microservicios (Environment Group `gateway-secret`, pasos arriba).
 - [x] Tabla `usuarios` creada en TiDB.
 - [x] Esquema del catálogo definido y compartido (`docs/sql/02`, `03`, `04`).
 - [x] Aplicar `02`, `03` y `04` en TiDB.
-- [ ] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
-- [ ] Elastic Cloud — crear el deployment y configurar `buscador-service` en Render (pasos arriba), pocos días antes de la entrega.
+- [x] Crear el primer administrador en producción (`node scripts/crear-admin.js https://sucre-turistico.onrender.com`).
+- [x] Elastic Cloud — proyecto Serverless creado y `buscador-service` configurado en Render (10 nov 2026). Vence ~24 nov 2026.
 - [x] Código real de conexión a MySQL en los 5 microservicios con base de datos (CRUD de destinos, alojamiento, gastronomía, experiencias y eventos).

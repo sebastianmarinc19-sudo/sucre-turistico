@@ -23,6 +23,9 @@ const SERVICIOS = [
   'https://sucre-turistico-eventos-service.onrender.com',
 ];
 
+// Aparte porque no es un catalogo: lee de Elasticsearch (Elastic Cloud).
+const BUSCADOR = 'https://sucre-turistico-buscador-service.onrender.com';
+
 const CATALOGOS = ['destinos', 'alojamientos', 'gastronomia', 'experiencias', 'eventos'];
 
 const resultados = [];
@@ -50,7 +53,7 @@ async function pedirConReintentos(url, intentos = 12) {
 
 async function despertar() {
   console.log('Despertando los microservicios (puede tardar ~1 min si estaban dormidos)...\n');
-  await Promise.all(SERVICIOS.map(async (url) => {
+  await Promise.all([...SERVICIOS, BUSCADOR].map(async (url) => {
     const nombre = `despertar ${new URL(url).hostname.split('-')[2]}`;
     try {
       const r = await pedir(`${url}/health`);
@@ -132,6 +135,37 @@ async function probarSeguridad() {
   }
 }
 
+async function probarBuscador() {
+  console.log('\nBuscador (Elasticsearch):\n');
+  try {
+    const r = await pedirConReintentos(`${GATEWAY}/api/buscador?q=playa`);
+    const datos = r.status === 200 ? JSON.parse(r.texto) : null;
+    const ok = datos && datos.total > 0 && datos.facets?.municipio;
+    const detalle = ok ? `${datos.total} resultados, con facets, en ${r.segundos}s`
+      : r.status === 503 ? 'HTTP 503: Elasticsearch no responde (revisar ELASTICSEARCH_HOST/API_KEY en Render)'
+        : `HTTP ${r.status}`;
+    registrar(Boolean(ok), 'GET /api/buscador?q=playa', detalle);
+  } catch (err) {
+    registrar(false, 'GET /api/buscador?q=playa', err.message);
+  }
+
+  try {
+    const r = await pedirConReintentos(`${GATEWAY}/api/buscador/sugerencias?q=cov`);
+    const lista = r.status === 200 ? JSON.parse(r.texto) : [];
+    registrar(lista.length > 0, 'Sugerencias mientras se escribe', `${lista.length} sugerencias para "cov"`);
+  } catch (err) {
+    registrar(false, 'Sugerencias mientras se escribe', err.message);
+  }
+
+  // Reindexar es una escritura: directo al servicio, sin el secreto del gateway, se rechaza.
+  try {
+    const r = await pedir(`${BUSCADOR}/api/buscador/reindexar`, { method: 'POST' });
+    registrar(r.status === 403, 'POST directo a reindexar es rechazado', `HTTP ${r.status} (se espera 403)`);
+  } catch (err) {
+    registrar(false, 'POST directo a reindexar es rechazado', err.message);
+  }
+}
+
 async function probarFrontend() {
   console.log('\nFrontend:\n');
   for (const ruta of ['/', '/eventos', '/admin']) {
@@ -150,6 +184,7 @@ async function probarFrontend() {
   await despertar();
   await probarCatalogos();
   await probarSeguridad();
+  await probarBuscador();
   await probarFrontend();
 
   const fallas = resultados.filter((r) => !r.ok);

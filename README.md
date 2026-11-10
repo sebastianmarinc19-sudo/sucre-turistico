@@ -11,7 +11,7 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 | API Gateway | https://sucre-turistico.onrender.com/health |
 | Panel de administración | https://sucre-turistico-frontend.vercel.app/admin |
 
-Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. El buscador (full-text, autocompletado y facets con Elasticsearch) está hecho y probado en local; falta desplegarlo en Elastic Cloud, a propósito poco antes de la entrega por los 14 días gratis (ver [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
+Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. El buscador (full-text, autocompletado y facets con Elasticsearch) está desplegado en Elastic Cloud Serverless desde el 10 de noviembre de 2026; la prueba gratis vence hacia el 24 de noviembre (ver [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
 
 Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minuto y deja los servicios despiertos (los gratis de Render se duermen tras 15 min).
 
@@ -42,7 +42,7 @@ Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minu
 - **Microservicios:** `destinos`, `alojamiento`, `gastronomia`, `experiencias`, `eventos`, `buscador`.
 - **Bases de datos:** MySQL (datos estructurados), Elasticsearch (búsqueda full-text, facets, sugerencias).
 - **Contenerización:** Docker + Docker Compose.
-- **Despliegue:** Front-end en Vercel, back-end en Render, MySQL en TiDB Cloud (Elasticsearch en Elastic Cloud, pendiente).
+- **Despliegue:** Front-end en Vercel, back-end en Render, MySQL en TiDB Cloud y Elasticsearch en Elastic Cloud Serverless.
 
 ## Estructura del repositorio
 
