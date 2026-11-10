@@ -22,6 +22,7 @@ const Detalle = lazy(() => import('./pages/Detalle'));
 const Favoritos = lazy(() => import('./pages/Favoritos'));
 const Login = lazy(() => import('./admin/Login'));
 const Panel = lazy(() => import('./admin/Panel'));
+const CambiarClave = lazy(() => import('./admin/CambiarClave'));
 
 function NoEncontrada() {
   return (
@@ -71,6 +72,7 @@ function Paginas() {
           <Route path="/buscar" element={<Buscador />} />
           <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/admin/login" element={enContenedor(<Login />)} />
+          <Route path="/admin/cambiar-clave" element={enContenedor(<CambiarClave />)} />
           <Route path="/admin" element={enContenedor(<Panel />)} />
           <Route path="/admin/:entidad" element={enContenedor(<Panel />)} />
           <Route path="*" element={<NoEncontrada />} />

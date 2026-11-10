@@ -321,7 +321,7 @@ test('cambiar la contrasena exige la actual y quita el aviso de temporal', async
   t.after(() => server.close());
 
   const mala = await enviar(`${url}/api/auth/cambiar-password`, 'POST', tokenNegocio(), { actual: 'no-es-esta', nueva: 'nueva-clave-456' });
-  assert.strictEqual(mala.status, 401);
+  assert.strictEqual(mala.status, 400);
 
   const buena = await enviar(`${url}/api/auth/cambiar-password`, 'POST', tokenNegocio(), { actual: CLAVE, nueva: 'nueva-clave-456' });
   assert.strictEqual(buena.status, 200);

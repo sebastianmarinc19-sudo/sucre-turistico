@@ -132,7 +132,8 @@ function crearRutasAuth(repo) {
 
     const cuenta = await repo.buscarPorEmail(req.usuario.email);
     if (!cuenta || !(await bcrypt.compare(actual, cuenta.password_hash))) {
-      return res.status(401).json({ error: 'La contrasena actual no es correcta' });
+      // 400 y no 401: el front trata cualquier 401 como sesion vencida y saca al usuario del panel.
+      return res.status(400).json({ error: 'La contrasena actual no es correcta' });
     }
     await repo.cambiarPassword(cuenta.id, await bcrypt.hash(nueva, RONDAS_BCRYPT), false);
     res.json({ ok: true });
