@@ -59,14 +59,42 @@ const SOLO_LECTURA = ['GET', 'HEAD', 'OPTIONS'];
 // cada microservicio revisa que solo toque lo suyo.
 const SOLO_SUPERADMIN = ['/api/destinos'];
 
+// La unica escritura publica: el turista pide una reserva sin cuenta
+// (docs/sql/07-reservas.sql). El microservicio valida los datos y que la
+// ficha este publicada; aqui solo se limita cuantas puede mandar cada IP.
+const RESERVA_PUBLICA = /^\/api\/(alojamientos|gastronomia|experiencias)\/\d+\/reservas$/;
+const MAX_RESERVAS = 5;
+const VENTANA_MS = 15 * 60 * 1000;
+
+// Limite en memoria, por IP: suficiente para frenar a alguien que llena el
+// formulario en bucle. Se reinicia si el gateway se reinicia, y esta bien asi.
+function crearLimitador({ max = MAX_RESERVAS, ventanaMs = VENTANA_MS } = {}) {
+  const envios = new Map();
+  return (ip) => {
+    const ahora = Date.now();
+    const recientes = (envios.get(ip) || []).filter((t) => ahora - t < ventanaMs);
+    if (recientes.length >= max) return false;
+    recientes.push(ahora);
+    envios.set(ip, recientes);
+    return true;
+  };
+}
+
 // Las escrituras exigen sesion, y ademas se revisa la cuenta en la base en
 // cada una: asi una cuenta suspendida (o a la que le cambiaron el rol) queda
 // bloqueada al instante, aunque su token siga vigente unas horas.
-function protegerEscrituras(prefijos, repo) {
+function protegerEscrituras(prefijos, repo, limitar = crearLimitador()) {
   const bajo = (lista, ruta) => lista.some((p) => ruta === p || ruta.startsWith(`${p}/`));
 
   return async (req, res, next) => {
     if (SOLO_LECTURA.includes(req.method) || !bajo(prefijos, req.path)) return next();
+
+    if (req.method === 'POST' && RESERVA_PUBLICA.test(req.path)) {
+      if (!limitar(req.ip)) {
+        return res.status(429).json({ error: 'Enviaste varias reservas seguidas. Espera unos minutos e intenta de nuevo.' });
+      }
+      return next();
+    }
 
     const { payload, status, error } = leerToken(req);
     if (!payload) return res.status(status).json({ error });
@@ -87,4 +115,6 @@ function protegerEscrituras(prefijos, repo) {
   };
 }
 
-module.exports = { requiereSesion, requiereSuperadmin, identificarSiHayToken, protegerEscrituras, SIN_CONFIGURAR };
+module.exports = {
+  requiereSesion, requiereSuperadmin, identificarSiHayToken, protegerEscrituras, crearLimitador, SIN_CONFIGURAR,
+};

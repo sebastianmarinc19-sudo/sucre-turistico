@@ -573,3 +573,24 @@ a.st-card:hover .st-card-title, a.st-evento:hover .st-card-title { color: var(--
 .st-tabla .form-switch .form-check-input { cursor: pointer; }
 .st-tabla .form-switch .form-check-input:checked { background-color: var(--c-success); border-color: var(--c-success); }
 .st-datos-acceso { white-space: pre-wrap; font-size: 13px; background: var(--c-bg); border: 1px dashed var(--c-border); border-radius: var(--r-lg); padding: 14px; margin: 0; }
+/* ── Reservas ── */
+.st-btn-reservar { height: 46px; font-size: 15px; box-shadow: 0 8px 20px rgba(0, 119, 182, .25); }
+.st-reserva-ok { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #e6f4e6; color: var(--c-success); }
+.st-filtro-estado { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-reservas { list-style: none; margin: 0; padding: 0; }
+.st-reserva { display: grid; grid-template-columns: 180px 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--c-border); }
+.st-reserva:last-child { border-bottom: none; }
+.st-reserva.pendiente { background: #fffaf0; }
+.st-reserva-cuando { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--c-text-2); }
+.st-reserva-cuando strong { font-family: var(--f-h); font-size: 14px; color: var(--c-text); }
+.st-reserva-cuando span, .st-reserva-quien > span { display: inline-flex; align-items: center; gap: 5px; }
+.st-reserva-quien { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.st-reserva-ficha { font-size: 12px; color: var(--c-primary); font-weight: 600; }
+.st-reserva-mensaje { margin: 4px 0 0; font-size: 13px; color: var(--c-text-2); font-style: italic; }
+.st-reserva-acciones { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.st-estado.pendiente { background: var(--c-accent-lt); color: #b4541c; }
+.st-resumen-icono.st-con-contador { position: relative; }
+@media (max-width: 767px) {
+  .st-reserva { grid-template-columns: 1fr; gap: 10px; }
+  .st-reserva-acciones { align-items: flex-start; }
+}

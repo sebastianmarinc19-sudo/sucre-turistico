@@ -70,6 +70,14 @@ export const CATALOGO = {
   },
 };
 
+// Secciones que reciben reservas (docs/sql/07-reservas.sql) y lo que pide
+// cada una ademas de lo comun. `clave` es la de la tabla reservas.
+export const RESERVABLES = {
+  alojamiento: { clave: 'alojamiento', titulo: 'Reservar estadía', boton: 'Reservar estadía', fechaInicio: 'Llegada', conSalida: true, personas: 'Huéspedes' },
+  gastronomia: { clave: 'restaurante', titulo: 'Reservar mesa', boton: 'Reservar mesa', fechaInicio: 'Fecha', conHora: true, personas: 'Personas' },
+  experiencias: { clave: 'experiencia', titulo: 'Reservar cupo', boton: 'Reservar cupo', fechaInicio: 'Fecha', personas: 'Personas' },
+};
+
 export const RANGOS_PRECIO = {
   economico: { simbolo: '$', texto: 'Económico' },
   medio: { simbolo: '$$', texto: 'Precio medio' },

@@ -1,4 +1,4 @@
-import { Building2, ExternalLink, KeyRound, LogOut, RefreshCw } from 'lucide-react';
+import { Building2, CalendarCheck, ExternalLink, KeyRound, LogOut, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -7,6 +7,8 @@ import { cerrarSesion, esSuperadmin, usuarioActual } from '../api/sesion';
 import { CATALOGO } from '../catalogo';
 import { ENTIDADES } from './entidades';
 import Negocios from './Negocios';
+import Reservas from './Reservas';
+import { cargarReservas } from './reservasApi';
 import TablaCrud from './TablaCrud';
 
 // Lo que ve cada rol: el superadmin todo, mas las cuentas de los negocios; un
@@ -41,6 +43,20 @@ function Panel() {
   const [conteos, recargarConteos] = useConteos(entidades);
   const reindexPendiente = useRef(null);
 
+  // Reservas por atender, para el contador de la tarjeta "Reservas".
+  const [pendientes, setPendientes] = useState(null);
+  const [versionReservas, setVersionReservas] = useState(0);
+  const recargarPendientes = useCallback(() => setVersionReservas((v) => v + 1), []);
+  const puedeVerReservas = Boolean(usuario && !usuario.debe_cambiar_password);
+  useEffect(() => {
+    if (!puedeVerReservas) return undefined;
+    let cancelado = false;
+    cargarReservas('pendiente')
+      .then(({ reservas }) => { if (!cancelado) setPendientes(reservas.length); })
+      .catch(() => {});
+    return () => { cancelado = true; };
+  }, [versionReservas, puedeVerReservas]);
+
   // El indice del buscador no se entera solo de lo que se crea, edita, publica
   // u oculta: tras cada cambio se actualiza en segundo plano (agrupando los
   // cambios seguidos), sin molestar si falla.
@@ -57,8 +73,9 @@ function Panel() {
 
   const super_ = esSuperadmin(usuario);
   const enNegocios = clave === 'negocios' && super_;
+  const enReservas = clave === 'reservas';
   const entidad = entidades.find((e) => e.clave === clave);
-  if (!entidad && !enNegocios) return <Navigate to={`/admin/${entidades[0].clave}`} replace />;
+  if (!entidad && !enNegocios && !enReservas) return <Navigate to={`/admin/${entidades[0].clave}`} replace />;
 
   async function actualizarBuscador() {
     setReindexando(true);
@@ -116,6 +133,13 @@ function Panel() {
             </NavLink>
           );
         })}
+        <NavLink to="/admin/reservas" className="st-resumen-tarjeta">
+          <span className="st-resumen-icono st-con-contador">
+            <CalendarCheck size={22} aria-hidden="true" />
+            {pendientes > 0 && <span className="st-contador" aria-label={`${pendientes} pendientes`}>{pendientes}</span>}
+          </span>
+          <span><strong>{pendientes == null ? '…' : pendientes}</strong><small>Reservas pendientes</small></span>
+        </NavLink>
         {super_ && (
           <NavLink to="/admin/negocios" className="st-resumen-tarjeta">
             <span className="st-resumen-icono"><Building2 size={22} aria-hidden="true" /></span>
@@ -124,9 +148,9 @@ function Panel() {
         )}
       </nav>
 
-      {enNegocios
-        ? <Negocios />
-        : <TablaCrud key={entidad.clave} entidad={entidad} usuario={usuario} onCambio={alCambiar} />}
+      {enNegocios && <Negocios />}
+      {enReservas && <Reservas onCambio={recargarPendientes} />}
+      {entidad && <TablaCrud key={entidad.clave} entidad={entidad} usuario={usuario} onCambio={alCambiar} />}
     </div>
   );
 }

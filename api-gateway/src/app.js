@@ -52,6 +52,9 @@ function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
   const headers = cabecerasHaciaServicios();
 
   const app = express();
+  // Render pone un proxy delante: sin esto, req.ip seria siempre el del
+  // proxy y el limite de reservas por IP frenaria a todos a la vez.
+  app.set('trust proxy', 1);
   app.use(cors());
 
   const repo = usuariosRepo || require('./auth/usuarios-repo');

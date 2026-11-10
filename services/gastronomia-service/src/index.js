@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const soloGateway = require('./solo-gateway');
 const { usuarioDe, filtroVisibilidad, propietarioAlCrear, exigirPermiso, rutaPublicar } = require('./propiedad');
+const { montarReservas } = require('./reservas');
 const pool = require('./db');
 
 const app = express();
@@ -69,6 +70,9 @@ app.get('/api/gastronomia/catalogos/municipios', async (req, res) => {
 
 // Obtener un restaurante por id, con su carta de platos (historia 7: "consultar
 // restaurantes y platos tipicos"). Es la relacion 1-a-muchos del esquema; la
+// Reservaciones (src/reservas.js). Va antes de /api/gastronomia/:id: si no, "reservas" se tomaria como un id.
+montarReservas(app, pool, { seccion: 'restaurante', tabla: 'restaurantes', ruta: '/api/gastronomia' });
+
 // lista general no los trae para no pesar.
 app.get('/api/gastronomia/:id', async (req, res) => {
   try {
