@@ -18,7 +18,7 @@ function secreto() {
 
 function firmar(usuario) {
   return jwt.sign(
-    { sub: usuario.id, email: usuario.email, nombre: usuario.nombre },
+    { sub: usuario.id, email: usuario.email, nombre: usuario.nombre, rol: usuario.rol },
     secreto(),
     { expiresIn: EXPIRA_EN }
   );

@@ -5,10 +5,10 @@ SET NAMES utf8mb4;
 
 -- Tabla de usuarios del panel de administracion.
 --
--- Guarda SOLO administradores. El turista no tiene cuenta: accede directo a
+-- Guarda las cuentas del panel. El turista no tiene cuenta: accede directo a
 -- toda la informacion del catalogo sin registrarse ni iniciar sesion, que es
--- lo que describe el enunciado. Por eso aqui no hay columna `rol`: no hay
--- nada que distinguir, todo el que esta en esta tabla es administrador.
+-- lo que describe el enunciado. Los roles (superadmin y negocio) los agrega
+-- 06-roles-negocios.sql.
 --
 -- docker-compose monta esta carpeta en /docker-entrypoint-initdb.d, asi que
 -- MySQL ejecuta este archivo solo la PRIMERA vez que se crea el volumen. Si ya

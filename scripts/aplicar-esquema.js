@@ -23,6 +23,8 @@ const ESQUEMA = ['01-usuarios.sql', '02-municipios.sql', '03-catalogo.sql'];
 const DATOS = '04-datos-ejemplo.sql';
 // Idempotente: se aplica siempre, tambien sobre una base que ya tiene datos.
 const MAS_DATOS = '05-mas-datos.sql';
+// Migracion de una sola vez (ALTER TABLE): se salta si ya se aplico.
+const ROLES = '06-roles-negocios.sql';
 const TABLAS = ['usuarios', 'municipios', 'destinos', 'alojamientos', 'restaurantes', 'platos', 'experiencias', 'eventos'];
 
 const CONFIG = {
@@ -102,6 +104,15 @@ async function aplicar(conexion, archivo) {
       else await aplicar(conexion, DATOS);
       await aplicar(conexion, MAS_DATOS);
     }
+
+    // Va despues de los datos: 04 y 05 insertan sin las columnas nuevas, que
+    // toman su valor por defecto (sin dueno y publicadas).
+    const [[{ yaTieneRoles }]] = await conexion.query(
+      `SELECT COUNT(*) AS yaTieneRoles FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'rol'`
+    );
+    if (yaTieneRoles > 0) console.log(`Saltando ${ROLES}: ya estaba aplicada.`);
+    else await aplicar(conexion, ROLES);
 
     console.log('');
     mostrar('Despues:', await contarFilas(conexion));
