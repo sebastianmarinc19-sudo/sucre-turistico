@@ -4,44 +4,87 @@ const SIN_CONFIGURAR = {
   error: 'La autenticacion no esta configurada en este servidor: falta la variable JWT_SECRET.',
 };
 
-// Exige un token valido. Todo el que tiene cuenta es administrador: el
-// turista accede al catalogo sin registrarse, asi que no hay roles que
-// distinguir (ver docs/sql/01-usuarios.sql).
-function requiereAdmin(req, res, next) {
-  // Va primero: sin secreto no se puede verificar nada, y un 503 explica el
-  // problema real mucho mejor que un 401 diciendo "token invalido".
-  if (!haySecreto()) return res.status(503).json(SIN_CONFIGURAR);
+// Lee y verifica el token del header. Devuelve { payload } o { status, error }.
+function leerToken(req) {
+  if (!haySecreto()) return { status: 503, error: SIN_CONFIGURAR.error };
 
   const [tipo, token] = (req.headers.authorization || '').split(' ');
-
   if (tipo !== 'Bearer' || !token) {
-    return res.status(401).json({ error: 'Falta el token. Envia el header: Authorization: Bearer <token>' });
+    return { status: 401, error: 'Falta el token. Envia el header: Authorization: Bearer <token>' };
   }
-
-  let payload;
   try {
-    payload = verificar(token);
+    const payload = verificar(token);
+    // Los tokens de antes de los roles no traen `rol`: hay que entrar de nuevo.
+    if (!payload.rol) return { status: 401, error: 'Tu sesion es de una version anterior, vuelve a iniciar sesion' };
+    return { payload };
   } catch (err) {
     const expirado = err.name === 'TokenExpiredError';
-    return res.status(401).json({ error: expirado ? 'El token expiro, vuelve a iniciar sesion' : 'Token invalido' });
+    return { status: 401, error: expirado ? 'El token expiro, vuelve a iniciar sesion' : 'Token invalido' };
   }
+}
 
+// Exige una sesion valida, de cualquier rol (superadmin o negocio).
+function requiereSesion(req, res, next) {
+  const { payload, status, error } = leerToken(req);
+  if (!payload) return res.status(status).json({ error });
   req.usuario = payload;
   return next();
 }
 
-// Los turistas consultan sin iniciar sesion: solo las escrituras piden cuenta.
-// Asi el catalogo queda publico y el panel de administracion, protegido.
+// Exige ser superadmin: crear cuentas de negocio, suspenderlas, etc.
+function requiereSuperadmin(req, res, next) {
+  return requiereSesion(req, res, () => {
+    if (req.usuario.rol !== 'superadmin') {
+      return res.status(403).json({ error: 'Solo el superadministrador puede hacer esto' });
+    }
+    return next();
+  });
+}
+
+// En las lecturas el token es opcional: el turista consulta sin cuenta. Si
+// viene uno valido, se reenvia al microservicio quien es (para que el panel
+// de un negocio vea tambien sus fichas ocultas). Uno invalido se ignora.
+function identificarSiHayToken(req, res, next) {
+  if (req.headers.authorization) {
+    const { payload } = leerToken(req);
+    if (payload) req.usuario = payload;
+  }
+  next();
+}
+
 const SOLO_LECTURA = ['GET', 'HEAD', 'OPTIONS'];
 
-function protegerEscrituras(prefijos) {
-  return (req, res, next) => {
-    const esEscritura = !SOLO_LECTURA.includes(req.method);
-    const vaAUnMicroservicio = prefijos.some((p) => req.path === p || req.path.startsWith(`${p}/`));
+// Los destinos (playas, reservas, iglesias) son informacion turistica general:
+// solo los maneja el superadmin. Lo demas lo puede escribir un negocio, y
+// cada microservicio revisa que solo toque lo suyo.
+const SOLO_SUPERADMIN = ['/api/destinos'];
 
-    if (!esEscritura || !vaAUnMicroservicio) return next();
-    return requiereAdmin(req, res, next);
+// Las escrituras exigen sesion, y ademas se revisa la cuenta en la base en
+// cada una: asi una cuenta suspendida (o a la que le cambiaron el rol) queda
+// bloqueada al instante, aunque su token siga vigente unas horas.
+function protegerEscrituras(prefijos, repo) {
+  const bajo = (lista, ruta) => lista.some((p) => ruta === p || ruta.startsWith(`${p}/`));
+
+  return async (req, res, next) => {
+    if (SOLO_LECTURA.includes(req.method) || !bajo(prefijos, req.path)) return next();
+
+    const { payload, status, error } = leerToken(req);
+    if (!payload) return res.status(status).json({ error });
+
+    try {
+      const cuenta = await repo.buscarPorId(payload.sub);
+      if (!cuenta) return res.status(401).json({ error: 'La cuenta ya no existe, vuelve a iniciar sesion' });
+      if (!cuenta.activo) return res.status(403).json({ error: 'Tu cuenta esta suspendida. Habla con el administrador del sitio.' });
+      req.usuario = { ...payload, rol: cuenta.rol };
+    } catch (err) {
+      return res.status(500).json({ error: `No se pudo verificar la cuenta: ${err.message}` });
+    }
+
+    if (bajo(SOLO_SUPERADMIN, req.path) && req.usuario.rol !== 'superadmin') {
+      return res.status(403).json({ error: 'Los destinos solo los maneja el superadministrador' });
+    }
+    return next();
   };
 }
 
-module.exports = { requiereAdmin, protegerEscrituras, SIN_CONFIGURAR };
+module.exports = { requiereSesion, requiereSuperadmin, identificarSiHayToken, protegerEscrituras, SIN_CONFIGURAR };

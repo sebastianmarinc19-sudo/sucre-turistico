@@ -12,24 +12,36 @@ El enunciado fija seis microservicios definitivos; agregar un séptimo `auth-ser
 
 | Quién | Qué puede hacer |
 |---|---|
-| **Turista** — cualquiera, sin cuenta | `GET` a todos los servicios: ver destinos, hoteles, restaurantes, eventos, buscar. Sin registrarse ni iniciar sesión. |
-| **Administrador** — con token | Todo lo anterior + `POST`, `PUT`, `DELETE` (crear, editar y borrar contenido) |
+| **Turista** — cualquiera, sin cuenta | `GET` a todos los servicios: ver destinos, hoteles, restaurantes, eventos, buscar. Solo ve fichas **publicadas** de cuentas **activas**. |
+| **Negocio** — hotel, restaurante u operador, con cuenta que le crea el superadmin | Maneja **solo sus fichas** de alojamiento, restaurante (con su carta de platos), experiencias y eventos: crearlas (quedan a su nombre), editarlas, borrarlas y **publicarlas u ocultarlas**. No toca destinos ni lo de otros negocios. |
+| **Superadministrador** — la primera cuenta | Todo: los destinos, cualquier ficha, asignarle dueño a una ficha, y las cuentas de los negocios (crear, suspender, reactivar, restablecer la contraseña). |
 
-La regla vive en [`api-gateway/src/auth/middleware.js`](../api-gateway/src/auth/middleware.js): los métodos de lectura pasan directo, los de escritura exigen un token válido.
+Los roles llegaron con [`docs/sql/06-roles-negocios.sql`](sql/06-roles-negocios.sql): `usuarios.rol`, `usuarios.activo`, `usuarios.debe_cambiar_password`, y en cada ficha `propietario_id` y `publicado`.
 
-**No hay roles en el sistema, y es deliberado.** El turista no es un usuario con cuenta: es un visitante anónimo que accede directo a toda la información, como lo describe el enunciado. La tabla `usuarios` guarda únicamente administradores, así que no hay nada que distinguir — quien tiene cuenta, administra. Si en la sustentación preguntan por los "dos tipos de usuario" del enunciado, esa es la respuesta.
+**Cómo se hace cumplir, en dos capas:**
 
-Esto además cierra un agujero real: los microservicios están públicos en Render, así que sin esta capa cualquiera en internet podría escribir en la base de datos en cuanto existieran los endpoints de escritura.
+1. **El gateway** ([`middleware.js`](../api-gateway/src/auth/middleware.js)): las lecturas pasan (si traen token, se identifica a quien pregunta); las escrituras exigen sesión, se revisa la cuenta **en la base en cada escritura** (una cuenta suspendida queda bloqueada al instante aunque su token siga vigente) y los destinos solo los escribe el superadmin. Al reenviar, el gateway agrega `X-Usuario-Id` y `X-Usuario-Rol`, después de borrar las que mande el cliente.
+2. **Cada microservicio** (`src/propiedad.js`, igual en los cuatro con dueño): solo cree en esas cabeceras si además llega `X-Gateway-Secret`. Un negocio solo modifica las fichas cuyo `propietario_id` es su cuenta; lo que crea queda a su nombre aunque el formulario diga otra cosa. Con `?panel=1` (lo manda el panel) el superadmin ve todo y el negocio lo suyo, publicado o no; sin eso se ve lo mismo que el turista.
+
+**Suspender una cuenta** la bloquea y además oculta todas sus fichas del sitio (y del buscador, al reindexar). Al reactivarla, vuelven.
+
+**Contraseñas temporales:** el superadmin crea la cuenta del negocio con una contraseña temporal y se la pasa; el panel no deja hacer nada hasta que el negocio la cambie por una propia. Lo mismo al restablecerla.
 
 ## Endpoints
 
 | Método y ruta | Quién | Qué hace |
 |---|---|---|
-| `POST /api/auth/registro` | nadie logueado, **solo si no hay usuarios** · después, un admin | Crea una cuenta de administrador |
-| `POST /api/auth/login` | cualquiera | Devuelve `{ token, usuario }` |
-| `GET /api/auth/yo` | admin | Devuelve los datos del token (útil para el front) |
+| `POST /api/auth/registro` | nadie logueado, **solo si no hay usuarios** (y esa cuenta es superadmin) · después, solo el superadmin | Crea una cuenta; por defecto de negocio, con contraseña temporal |
+| `POST /api/auth/login` | cualquiera | Devuelve `{ token, usuario }`. Una cuenta suspendida recibe 403 |
+| `GET /api/auth/yo` | cualquier sesión | Datos de la cuenta, leídos de la base |
+| `POST /api/auth/cambiar-password` | cualquier sesión | `{ actual, nueva }`; quita la marca de contraseña temporal |
+| `GET /api/auth/usuarios` | superadmin | Lista las cuentas |
+| `PATCH /api/auth/usuarios/:id` | superadmin | `{ activo }`: suspender o reactivar (no la propia) |
+| `POST /api/auth/usuarios/:id/restablecer` | superadmin | `{ password }`: nueva contraseña temporal |
 
-El token es un JWT que dura **8 horas**.
+Además, en los servicios con dueño: `PATCH /api/<sección>/:id/publicado { publicado }`, y en gastronomía la carta: `POST /api/gastronomia/:id/platos`, `PUT` y `DELETE /api/gastronomia/:id/platos/:platoId`.
+
+El token es un JWT que dura **8 horas** y lleva el rol. Los tokens de antes de los roles (sin `rol`) ya no sirven: hay que volver a iniciar sesión.
 
 ## Crear el primer administrador
 

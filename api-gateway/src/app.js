@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const { crearRutasAuth } = require('./auth/routes');
-const { protegerEscrituras } = require('./auth/middleware');
+const { identificarSiHayToken, protegerEscrituras } = require('./auth/middleware');
 const { avisarSiFaltaConfiguracion } = require('./auth/tokens');
 
 // Las URLs de los microservicios salen del entorno (docker-compose las inyecta).
@@ -33,6 +33,19 @@ function cabecerasHaciaServicios(env = process.env) {
   return { 'x-gateway-secret': env.GATEWAY_SECRET };
 }
 
+// Le dice al microservicio quien hace la peticion, para que aplique los
+// permisos de cada rol (un negocio solo toca sus fichas). Primero se borra lo
+// que mande el cliente: estas cabeceras solo las pone el gateway, y el
+// servicio solo les cree si ademas viene X-Gateway-Secret.
+function pasarUsuario(proxyReq, req) {
+  proxyReq.removeHeader('x-usuario-id');
+  proxyReq.removeHeader('x-usuario-rol');
+  if (req.usuario) {
+    proxyReq.setHeader('x-usuario-id', String(req.usuario.sub));
+    proxyReq.setHeader('x-usuario-rol', req.usuario.rol);
+  }
+}
+
 // `usuariosRepo` se puede inyectar para poder probar la autenticacion sin base de datos.
 function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
   avisarSiFaltaConfiguracion();
@@ -45,14 +58,18 @@ function createApp({ routes = buildRoutes(), usuariosRepo } = {}) {
   app.use('/api/auth', crearRutasAuth(repo));
 
   // Los GET quedan publicos (el turista consulta sin cuenta); crear, editar y
-  // borrar exigen un token de administrador. Va ANTES de los proxies.
-  app.use(protegerEscrituras(Object.keys(routes)));
+  // borrar exigen una sesion activa. Va ANTES de los proxies.
+  app.use(identificarSiHayToken);
+  app.use(protegerEscrituras(Object.keys(routes), repo));
 
   // Ojo: se monta con `app.use(middleware)` + `pathFilter`, NO con `app.use(ruta, middleware)`.
   // Express recorta la ruta de montaje, asi que con la segunda forma el microservicio
   // recibia "/" en vez de "/api/destinos" y respondia 404 a todo el CRUD.
   Object.entries(routes).forEach(([path, target]) => {
-    app.use(createProxyMiddleware({ pathFilter: path, target, changeOrigin: true, headers }));
+    app.use(createProxyMiddleware({
+      pathFilter: path, target, changeOrigin: true, headers,
+      on: { proxyReq: pasarUsuario },
+    }));
   });
 
   app.get('/health', (req, res) => {

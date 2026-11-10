@@ -33,7 +33,7 @@ before(async () => {
   const target = `http://127.0.0.1:${upstream.address().port}`;
   gateway = await escuchar(createApp({
     routes: { '/api/destinos': target },
-    usuariosRepo: crearRepoEnMemoria(),
+    usuariosRepo: crearRepoEnMemoria([{ nombre: 'Admin', email: 'admin@sucreturistico.co', password_hash: 'x' }]),
   }));
   gatewayUrl = `http://127.0.0.1:${gateway.address().port}`;
 });
@@ -73,7 +73,7 @@ test('reenvia rutas con parametro, como /api/destinos/:id', async () => {
 // romperia el reenvio de los POST. Esta prueba lo deja fijado.
 test('reenvia el body de un POST intacto', async () => {
   // Las escrituras exigen una cuenta (ver auth.test.js), por eso va el token.
-  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co' });
+  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co', rol: 'superadmin' });
   const res = await fetch(`${gatewayUrl}/api/destinos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -87,7 +87,7 @@ test('reenvia el body de un POST intacto', async () => {
 
 // Los microservicios solo aceptan escrituras con este secreto (solo-gateway.js).
 test('manda X-Gateway-Secret al microservicio y pisa el que mande el cliente', async () => {
-  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co' });
+  const token = firmar({ id: 1, nombre: 'Admin', email: 'admin@sucreturistico.co', rol: 'superadmin' });
   const res = await fetch(`${gatewayUrl}/api/destinos`, {
     method: 'POST',
     headers: {

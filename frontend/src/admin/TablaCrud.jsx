@@ -1,4 +1,4 @@
-import { Eye, ImageOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { BookOpen, Eye, EyeOff, ImageOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,7 @@ import api, { mensajeDeError } from '../api/client';
 import { CATALOGO, categoriaDe, pesos, RANGOS_PRECIO, rutaDetalle } from '../catalogo';
 import { rangoDeFechas } from '../fechas';
 import { imagenDe } from '../imagenes';
+import Carta from './Carta';
 
 // Pasa una fila de la API a los valores del formulario (todo como texto).
 function aFormulario(campos, fila) {
@@ -25,7 +26,7 @@ function aCuerpo(campos, valores) {
   for (const c of campos) {
     const v = valores[c.nombre].trim();
     if (c.tipo === 'lista') cuerpo[c.nombre] = v ? v.split(',').map((s) => s.trim()).filter(Boolean) : null;
-    else if (c.tipo === 'numero' || c.tipo === 'municipio') cuerpo[c.nombre] = v === '' ? null : Number(v);
+    else if (c.tipo === 'numero' || c.tipo === 'municipio' || c.tipo === 'propietario') cuerpo[c.nombre] = v === '' ? null : Number(v);
     else cuerpo[c.nombre] = v === '' ? null : v;
   }
   return cuerpo;
@@ -44,20 +45,21 @@ function Celda({ seccion, columna, fila }) {
   return valor;
 }
 
-function Campo({ campo, valor, onChange, municipios }) {
+function Campo({ campo, valor, onChange, municipios, negocios }) {
   const id = `campo-${campo.nombre}`;
   const comun = { id, value: valor, required: campo.obligatorio, onChange: (e) => onChange(campo.nombre, e.target.value) };
 
   let control;
   if (campo.tipo === 'textarea') {
     control = <textarea className="form-control" rows={3} {...comun} />;
-  } else if (campo.tipo === 'opciones' || campo.tipo === 'municipio') {
-    const lista = campo.tipo === 'municipio'
-      ? municipios.map((m) => ({ valor: String(m.id), etiqueta: m.nombre }))
-      : campo.opciones;
+  } else if (campo.tipo === 'opciones' || campo.tipo === 'municipio' || campo.tipo === 'propietario') {
+    const lista = {
+      municipio: () => municipios.map((m) => ({ valor: String(m.id), etiqueta: m.nombre })),
+      propietario: () => negocios.map((n) => ({ valor: String(n.id), etiqueta: n.activo ? n.nombre : `${n.nombre} (suspendida)` })),
+    }[campo.tipo]?.() || campo.opciones;
     control = (
       <select className="form-select" {...comun}>
-        <option value="">Selecciona…</option>
+        <option value="">{campo.tipo === 'propietario' ? 'Sin dueño (la maneja el superadmin)' : 'Selecciona…'}</option>
         {lista.map((o) => <option key={o.valor} value={o.valor}>{o.etiqueta}</option>)}
       </select>
     );
@@ -91,8 +93,17 @@ function VistaPrevia({ url }) {
   );
 }
 
-function TablaCrud({ entidad, onCambio }) {
-  const { endpoint, columnas, campos, singular, titulo, seccion } = entidad;
+// Campo extra que solo ve el superadmin: a que negocio pertenece la ficha.
+const CAMPO_DUENO = { nombre: 'propietario_id', etiqueta: 'Negocio dueño', tipo: 'propietario' };
+
+function TablaCrud({ entidad, onCambio, usuario }) {
+  const { endpoint, columnas, singular, titulo, seccion } = entidad;
+  const esSuper = usuario?.rol === 'superadmin';
+  // Los destinos no tienen dueno (solo los maneja el superadmin).
+  const conDueno = seccion !== 'destinos';
+  const campos = esSuper && conDueno ? [...entidad.campos, CAMPO_DUENO] : entidad.campos;
+  const [negocios, setNegocios] = useState([]);
+  const [carta, setCarta] = useState(null); // restaurante cuya carta se esta editando
 
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -120,9 +131,19 @@ function TablaCrud({ entidad, onCambio }) {
       .catch(() => setMunicipios([]));
   }, [endpoint]);
 
+  // El superadmin necesita la lista de negocios para mostrar y asignar duenos.
+  useEffect(() => {
+    if (!esSuper || !conDueno) return;
+    api.get('/api/auth/usuarios')
+      .then(({ data }) => setNegocios(data.filter((u) => u.rol === 'negocio')))
+      .catch(() => setNegocios([]));
+  }, [esSuper, conDueno]);
+
   useEffect(() => {
     let cancelado = false;
-    api.get(endpoint)
+    // panel=1: el superadmin ve todo y un negocio solo lo suyo, incluidas las
+    // fichas ocultas (el sitio publico solo muestra las publicadas).
+    api.get(endpoint, { params: { panel: 1 } })
       .then(({ data }) => { if (!cancelado) { setFilas(data); setError(null); } })
       .catch((err) => { if (!cancelado) setError(mensajeDeError(err)); })
       .finally(() => { if (!cancelado) setCargando(false); });
@@ -155,6 +176,21 @@ function TablaCrud({ entidad, onCambio }) {
       setGuardando(false);
     }
   }
+
+  async function alternarPublicado(fila) {
+    const publicado = !fila.publicado;
+    try {
+      await api.patch(`${endpoint}/${fila.id}/publicado`, { publicado });
+      toast.success(publicado ? 'Publicado en el sitio' : 'Oculto del sitio', {
+        description: publicado ? fila.nombre : `${fila.nombre} sigue aquí en tu panel.`,
+      });
+      recargar();
+    } catch (err) {
+      toast.error('No se pudo cambiar', { description: mensajeDeError(err) });
+    }
+  }
+
+  const nombreNegocio = (id) => negocios.find((n) => n.id === id)?.nombre;
 
   async function eliminar() {
     setBorrando(true);
@@ -217,6 +253,8 @@ function TablaCrud({ entidad, onCambio }) {
               <tr>
                 <th scope="col">Nombre</th>
                 {otrasColumnas.map((c) => <th key={c.nombre} scope="col">{c.etiqueta}</th>)}
+                {esSuper && conDueno && <th scope="col">Negocio</th>}
+                {conDueno && <th scope="col">En el sitio</th>}
                 <th scope="col" className="text-end">Acciones</th>
               </tr>
             </thead>
@@ -233,8 +271,27 @@ function TablaCrud({ entidad, onCambio }) {
                     </div>
                   </td>
                   {otrasColumnas.map((c) => <td key={c.nombre}><Celda seccion={seccion} columna={c.nombre} fila={fila} /></td>)}
+                  {esSuper && conDueno && (
+                    <td>{fila.propietario_id ? (nombreNegocio(fila.propietario_id) || `#${fila.propietario_id}`) : <span className="text-muted small">Sin dueño</span>}</td>
+                  )}
+                  {conDueno && (
+                    <td>
+                      <div className="form-check form-switch m-0" title={fila.publicado ? 'Visible para los turistas' : 'Oculto: solo se ve en el panel'}>
+                        <input className="form-check-input" type="checkbox" role="switch" id={`pub-${fila.id}`}
+                          checked={Boolean(fila.publicado)} onChange={() => alternarPublicado(fila)} />
+                        <label className="form-check-label small" htmlFor={`pub-${fila.id}`}>
+                          {fila.publicado ? 'Publicado' : 'Oculto'}
+                        </label>
+                      </div>
+                    </td>
+                  )}
                   <td className="text-end text-nowrap">
-                    <Link to={rutaDetalle(seccion, fila)} className="st-accion" title="Ver en el sitio" aria-label={`Ver ${fila.nombre} en el sitio`}><Eye size={17} /></Link>
+                    {seccion === 'gastronomia' && (
+                      <button type="button" className="st-accion" title="Carta de platos" aria-label={`Carta de ${fila.nombre}`} onClick={() => setCarta(fila)}><BookOpen size={17} /></button>
+                    )}
+                    {(!conDueno || fila.publicado)
+                      ? <Link to={rutaDetalle(seccion, fila)} className="st-accion" title="Ver en el sitio" aria-label={`Ver ${fila.nombre} en el sitio`}><Eye size={17} /></Link>
+                      : <span className="st-accion text-muted" title="Oculto: no se ve en el sitio"><EyeOff size={17} aria-hidden="true" /></span>}
                     <button type="button" className="st-accion" title="Editar" aria-label={`Editar ${fila.nombre}`} onClick={() => abrir(fila)}><Pencil size={17} /></button>
                     <button type="button" className="st-accion peligro" title="Eliminar" aria-label={`Eliminar ${fila.nombre}`} onClick={() => setPorBorrar(fila)}><Trash2 size={17} /></button>
                   </td>
@@ -254,7 +311,7 @@ function TablaCrud({ entidad, onCambio }) {
             <Modal.Body>
               <div className="row g-3">
                 {campos.map((c) => (
-                  <Campo key={c.nombre} campo={c} valor={formulario.valores[c.nombre]} onChange={cambiar} municipios={municipios} />
+                  <Campo key={c.nombre} campo={c} valor={formulario.valores[c.nombre]} onChange={cambiar} municipios={municipios} negocios={negocios} />
                 ))}
                 <VistaPrevia key={formulario.valores.imagen_url} url={formulario.valores.imagen_url?.trim()} />
               </div>
@@ -281,6 +338,8 @@ function TablaCrud({ entidad, onCambio }) {
           <button type="button" className="btn btn-danger" onClick={eliminar} disabled={borrando}>{borrando ? 'Eliminando…' : 'Eliminar'}</button>
         </Modal.Footer>
       </Modal>
+
+      {carta && <Carta restaurante={carta} onCerrar={() => setCarta(null)} />}
     </section>
   );
 }
