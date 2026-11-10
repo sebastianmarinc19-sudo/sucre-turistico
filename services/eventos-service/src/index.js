@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const soloGateway = require('./solo-gateway');
+const { usuarioDe, filtroVisibilidad, propietarioAlCrear, exigirPermiso, rutaPublicar } = require('./propiedad');
 const pool = require('./db');
 
 const app = express();
@@ -20,7 +21,7 @@ app.get('/health', (req, res) => {
 const SELECT_BASE = `
   SELECT e.id, e.nombre, m.nombre AS municipio, e.municipio_id,
          e.tipo, e.descripcion, e.imagen_url, e.fecha_inicio, e.fecha_fin,
-         e.lugar, e.precio_entrada
+         e.lugar, e.precio_entrada, e.propietario_id, e.publicado
   FROM eventos e
   JOIN municipios m ON m.id = e.municipio_id
 `;
@@ -47,8 +48,9 @@ app.get('/api/eventos', async (req, res) => {
       return res.status(400).json({ error: 'desde y hasta deben tener el formato AAAA-MM-DD' });
     }
 
-    let sql = `${SELECT_BASE} WHERE e.activo = TRUE`;
-    const params = [];
+    const vis = filtroVisibilidad(req, 'e');
+    let sql = `${SELECT_BASE} WHERE e.activo = TRUE${vis.sql}`;
+    const params = [...vis.params];
 
     if (municipio) {
       sql += ' AND m.nombre = ?';
@@ -88,7 +90,8 @@ app.get('/api/eventos/catalogos/municipios', async (req, res) => {
 
 app.get('/api/eventos/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(`${SELECT_BASE} WHERE e.id = ? AND e.activo = TRUE`, [req.params.id]);
+    const vis = filtroVisibilidad(req, 'e');
+    const [rows] = await pool.query(`${SELECT_BASE} WHERE e.id = ? AND e.activo = TRUE${vis.sql}`, [req.params.id, ...vis.params]);
     if (rows.length === 0) return res.status(404).json({ error: 'Evento no encontrado' });
     res.json(rows[0]);
   } catch (err) {
@@ -102,12 +105,13 @@ app.post('/api/eventos', async (req, res) => {
     if (error) return res.status(400).json({ error });
 
     const { nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada } = req.body;
+    const propietario_id = propietarioAlCrear(usuarioDe(req), req.body);
     const [result] = await pool.query(
-      `INSERT INTO eventos (nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, fecha_inicio, fecha_fin || null, lugar || null, precio_entrada ?? null]
+      `INSERT INTO eventos (nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada, propietario_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, fecha_inicio, fecha_fin || null, lugar || null, precio_entrada ?? null, propietario_id]
     );
-    res.status(201).json({ id: result.insertId, nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada });
+    res.status(201).json({ id: result.insertId, nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada, propietario_id });
   } catch (err) {
     if (err.code === 'ER_NO_REFERENCED_ROW_2') {
       return res.status(400).json({ error: 'Ese municipio_id no existe' });
@@ -121,12 +125,19 @@ app.put('/api/eventos/:id', async (req, res) => {
     const error = validar(req.body);
     if (error) return res.status(400).json({ error });
 
+    if (!(await exigirPermiso(pool, 'eventos', req, res, 'Evento'))) return undefined;
     const { nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada } = req.body;
+    // Solo el superadmin cambia el dueno; un negocio no puede regalar ni robar fichas.
+    const cambiaDueno = usuarioDe(req)?.rol === 'superadmin' && 'propietario_id' in req.body;
     const [result] = await pool.query(
       `UPDATE eventos SET nombre=?, municipio_id=?, tipo=?, descripcion=?, imagen_url=?,
-         fecha_inicio=?, fecha_fin=?, lugar=?, precio_entrada=?
+         fecha_inicio=?, fecha_fin=?, lugar=?, precio_entrada=?${cambiaDueno ? ', propietario_id=?' : ''}
        WHERE id=? AND activo=TRUE`,
-      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, fecha_inicio, fecha_fin || null, lugar || null, precio_entrada ?? null, req.params.id]
+      [
+        nombre, municipio_id, tipo, descripcion || null, imagen_url || null, fecha_inicio, fecha_fin || null, lugar || null, precio_entrada ?? null,
+        ...(cambiaDueno ? [req.body.propietario_id ? Number(req.body.propietario_id) : null] : []),
+        req.params.id,
+      ]
     );
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Evento no encontrado' });
     res.json({ id: Number(req.params.id), nombre, municipio_id, tipo, descripcion, imagen_url, fecha_inicio, fecha_fin, lugar, precio_entrada });
@@ -141,6 +152,7 @@ app.put('/api/eventos/:id', async (req, res) => {
 // "Eliminar" no borra la fila: la marca como inactiva (soft delete).
 app.delete('/api/eventos/:id', async (req, res) => {
   try {
+    if (!(await exigirPermiso(pool, 'eventos', req, res, 'Evento'))) return undefined;
     const [result] = await pool.query('UPDATE eventos SET activo = FALSE WHERE id = ? AND activo = TRUE', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Evento no encontrado' });
     res.status(204).send();
@@ -148,6 +160,8 @@ app.delete('/api/eventos/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+rutaPublicar(app, pool, { tabla: 'eventos', ruta: '/api/eventos', nombre: 'Evento' });
 
 if (require.main === module) {
   app.listen(PORT, () => {

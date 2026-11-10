@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const soloGateway = require('./solo-gateway');
+const { usuarioDe, filtroVisibilidad, propietarioAlCrear, exigirPermiso, rutaPublicar } = require('./propiedad');
 const pool = require('./db');
 
 const app = express();
@@ -18,7 +19,8 @@ app.get('/health', (req, res) => {
 
 const SELECT_BASE = `
   SELECT x.id, x.nombre, m.nombre AS municipio, x.municipio_id,
-         x.tipo, x.descripcion, x.imagen_url, x.precio, x.duracion_horas, x.operador
+         x.tipo, x.descripcion, x.imagen_url, x.precio, x.duracion_horas, x.operador,
+         x.propietario_id, x.publicado
   FROM experiencias x
   JOIN municipios m ON m.id = x.municipio_id
 `;
@@ -36,8 +38,9 @@ function validar({ nombre, municipio_id, tipo, precio, duracion_horas }) {
 app.get('/api/experiencias', async (req, res) => {
   try {
     const { municipio, tipo, precio_max } = req.query;
-    let sql = `${SELECT_BASE} WHERE x.activo = TRUE`;
-    const params = [];
+    const vis = filtroVisibilidad(req, 'x');
+    let sql = `${SELECT_BASE} WHERE x.activo = TRUE${vis.sql}`;
+    const params = [...vis.params];
 
     if (municipio) {
       sql += ' AND m.nombre = ?';
@@ -72,7 +75,8 @@ app.get('/api/experiencias/catalogos/municipios', async (req, res) => {
 
 app.get('/api/experiencias/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(`${SELECT_BASE} WHERE x.id = ? AND x.activo = TRUE`, [req.params.id]);
+    const vis = filtroVisibilidad(req, 'x');
+    const [rows] = await pool.query(`${SELECT_BASE} WHERE x.id = ? AND x.activo = TRUE${vis.sql}`, [req.params.id, ...vis.params]);
     if (rows.length === 0) return res.status(404).json({ error: 'Experiencia no encontrada' });
     res.json(rows[0]);
   } catch (err) {
@@ -86,12 +90,13 @@ app.post('/api/experiencias', async (req, res) => {
     if (error) return res.status(400).json({ error });
 
     const { nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador } = req.body;
+    const propietario_id = propietarioAlCrear(usuarioDe(req), req.body);
     const [result] = await pool.query(
-      `INSERT INTO experiencias (nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, precio ?? null, duracion_horas ?? null, operador || null]
+      `INSERT INTO experiencias (nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador, propietario_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, precio ?? null, duracion_horas ?? null, operador || null, propietario_id]
     );
-    res.status(201).json({ id: result.insertId, nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador });
+    res.status(201).json({ id: result.insertId, nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador, propietario_id });
   } catch (err) {
     if (err.code === 'ER_NO_REFERENCED_ROW_2') {
       return res.status(400).json({ error: 'Ese municipio_id no existe' });
@@ -105,12 +110,19 @@ app.put('/api/experiencias/:id', async (req, res) => {
     const error = validar(req.body);
     if (error) return res.status(400).json({ error });
 
+    if (!(await exigirPermiso(pool, 'experiencias', req, res, 'Experiencia'))) return undefined;
     const { nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador } = req.body;
+    // Solo el superadmin cambia el dueno; un negocio no puede regalar ni robar fichas.
+    const cambiaDueno = usuarioDe(req)?.rol === 'superadmin' && 'propietario_id' in req.body;
     const [result] = await pool.query(
       `UPDATE experiencias SET nombre=?, municipio_id=?, tipo=?, descripcion=?, imagen_url=?,
-         precio=?, duracion_horas=?, operador=?
+         precio=?, duracion_horas=?, operador=?${cambiaDueno ? ', propietario_id=?' : ''}
        WHERE id=? AND activo=TRUE`,
-      [nombre, municipio_id, tipo, descripcion || null, imagen_url || null, precio ?? null, duracion_horas ?? null, operador || null, req.params.id]
+      [
+        nombre, municipio_id, tipo, descripcion || null, imagen_url || null, precio ?? null, duracion_horas ?? null, operador || null,
+        ...(cambiaDueno ? [req.body.propietario_id ? Number(req.body.propietario_id) : null] : []),
+        req.params.id,
+      ]
     );
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Experiencia no encontrada' });
     res.json({ id: Number(req.params.id), nombre, municipio_id, tipo, descripcion, imagen_url, precio, duracion_horas, operador });
@@ -125,6 +137,7 @@ app.put('/api/experiencias/:id', async (req, res) => {
 // "Eliminar" no borra la fila: la marca como inactiva (soft delete).
 app.delete('/api/experiencias/:id', async (req, res) => {
   try {
+    if (!(await exigirPermiso(pool, 'experiencias', req, res, 'Experiencia'))) return undefined;
     const [result] = await pool.query('UPDATE experiencias SET activo = FALSE WHERE id = ? AND activo = TRUE', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Experiencia no encontrada' });
     res.status(204).send();
@@ -132,6 +145,8 @@ app.delete('/api/experiencias/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+rutaPublicar(app, pool, { tabla: 'experiencias', ruta: '/api/experiencias', nombre: 'Experiencia' });
 
 if (require.main === module) {
   app.listen(PORT, () => {
