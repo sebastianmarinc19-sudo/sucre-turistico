@@ -62,7 +62,9 @@ function Resultado({ r }) {
     <div className="col-12 col-md-6 col-xl-4">
       <article className="st-card">
         <div className="st-card-img" style={{ height: '150px' }}>
-          <img src={imagenDe(r, r.categoria)} alt={r.nombre} loading="lazy" />
+          {/* En el indice el id del registro se llama ref_id: con el se elige la
+              misma foto de respaldo que la tarjeta y el detalle de ese lugar. */}
+          <img src={imagenDe({ ...r, id: r.ref_id }, r.categoria)} alt={r.nombre} loading="lazy" />
           <span className="st-badge">{TIPOS[r.tipo] || r.tipo}</span>
         </div>
         <div className="st-card-body">

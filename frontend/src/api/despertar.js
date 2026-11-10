@@ -14,6 +14,7 @@ const SERVICIOS = [
   'https://sucre-turistico-gastronomia-service.onrender.com',
   'https://sucre-turistico-experiencias-service.onrender.com',
   'https://sucre-turistico-eventos-service.onrender.com',
+  'https://sucre-turistico-buscador-service.onrender.com',
 ];
 
 export function despertarServicios() {
