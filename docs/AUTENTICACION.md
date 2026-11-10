@@ -41,6 +41,18 @@ Los roles llegaron con [`docs/sql/06-roles-negocios.sql`](sql/06-roles-negocios.
 
 Además, en los servicios con dueño: `PATCH /api/<sección>/:id/publicado { publicado }`, y en gastronomía la carta: `POST /api/gastronomia/:id/platos`, `PUT` y `DELETE /api/gastronomia/:id/platos/:platoId`.
 
+### Reservaciones ([`docs/sql/07-reservas.sql`](sql/07-reservas.sql))
+
+El turista pide una reserva desde la ficha de un alojamiento, restaurante o experiencia **sin crear cuenta**: es la **única escritura pública** del sistema. El gateway la deja pasar sin token, con un límite de **5 solicitudes por IP cada 15 minutos**; el microservicio valida los datos (llegada y salida, hora del restaurante, fecha no pasada, teléfono, personas) y solo acepta fichas publicadas de cuentas activas.
+
+| Método y ruta | Quién | Qué hace |
+|---|---|---|
+| `POST /api/{alojamientos,gastronomia,experiencias}/:id/reservas` | cualquiera, sin token | Crea la solicitud (estado `pendiente`) |
+| `GET /api/{…}/reservas?estado=` | superadmin: todas · negocio: las de sus fichas | Bandeja "Reservas" del panel |
+| `PATCH /api/{…}/reservas/:reservaId` | el mismo permiso | `{ estado }`: `confirmada`, `rechazada` o `pendiente` |
+
+Los datos del turista (nombre y teléfono) solo los ve el dueño de la ficha y el superadmin. La lógica está en `src/reservas.js`, igual en los tres servicios.
+
 El token es un JWT que dura **8 horas** y lleva el rol. Los tokens de antes de los roles (sin `rol`) ya no sirven: hay que volver a iniciar sesión.
 
 ## Crear el primer administrador
