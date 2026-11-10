@@ -46,13 +46,20 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 
 | Tarea | Responsable | Servicio |
 |---|---|---|
-| Dockerizar todos los servicios + docker-compose de producción | Sebastián | infra |
+| ~~Dockerizar todos los servicios~~ **hecho** — cada servicio tiene su `Dockerfile` (Render despliega con ellos) y `docker-compose.yml` levanta todo en local | Sebastián | infra |
 | ~~Desplegar front-end en Vercel~~ **hecho** | Halit | infra |
 | ~~Desplegar back-end (Gateway + microservicios) en Render/Railway~~ **hecho** | Jaime | infra |
-| Desplegar Elasticsearch en Elastic Cloud y conectar | Sebastián | infra |
-| Pruebas end-to-end en el entorno desplegado | Todos | — |
-| Documentación técnica final | Todos (una sección c/u) | docs |
-| Grabar videomemoria (todos deben participar, según rúbrica) | Todos | — |
+| ~~Desplegar Elasticsearch en Elastic Cloud y conectar~~ **hecho** (10 nov 2026, Serverless; la prueba vence ~24 nov) | Sebastián | infra |
+| ~~Pruebas end-to-end en el entorno desplegado~~ **hecho** — `scripts/probar-produccion.js`, 25 pruebas | Todos | — |
+| ~~Documentación técnica final~~ **hecho** — README con capturas y diagrama, `AUTENTICACION.md`, `DEPLOYMENT.md` | Todos (una sección c/u) | docs |
+| Grabar videomemoria (todos deben participar, según rúbrica) — guion en [`VIDEOMEMORIA.md`](VIDEOMEMORIA.md) | Todos | — |
+
+> **Alcance agregado en el sprint 4:**
+>
+> - **Roles de superadministrador y negocio** ([`AUTENTICACION.md`](AUTENTICACION.md)): el superadmin crea cuentas para hoteles, restaurantes y operadores, que manejan y publican solo sus fichas (incluida la carta de platos).
+> - **Reservaciones:** el turista reserva desde la ficha sin crear cuenta y el negocio gestiona su bandeja de reservas.
+> - **Acabado visual:** páginas de detalle con mapa y clima, portada con vistas temáticas, buscador instantáneo, favoritos y diseño de aplicación en el celular.
+> - **Seguridad:** los microservicios solo aceptan escrituras que pasan por el gateway (`GATEWAY_SECRET`).
 
 ## Definition of Done (por tarea)
 

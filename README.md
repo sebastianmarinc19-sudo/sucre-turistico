@@ -11,9 +11,35 @@ Proyecto Integrador — Electiva II, Corporación Universitaria Antonio José de
 | API Gateway | https://sucre-turistico.onrender.com/health |
 | Panel de administración | https://sucre-turistico-frontend.vercel.app/admin |
 
-Estado: los cinco catálogos (destinos, alojamiento, gastronomía, experiencias y eventos) tienen CRUD real contra MySQL, cada uno con su página en el frontend, y el panel de administración permite crearlos, editarlos y eliminarlos con login. El buscador (full-text, autocompletado y facets con Elasticsearch) está desplegado en Elastic Cloud Serverless desde el 10 de noviembre de 2026; la prueba gratis vence hacia el 24 de noviembre (ver [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
+Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minuto (25 pruebas) y deja los servicios despiertos (los gratis de Render se duermen tras 15 min).
 
-Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minuto y deja los servicios despiertos (los gratis de Render se duermen tras 15 min).
+![Inicio](docs/capturas/inicio.jpg)
+
+## Qué hace
+
+**Para el turista** (sin crear cuenta):
+
+- **Cinco catálogos** —destinos, alojamiento, gastronomía, experiencias y eventos— con filtros por municipio, tipo y precio.
+- **Página de detalle** de cada lugar: foto a pantalla completa, ficha con precio y datos clave, **clima en vivo** del municipio, **mapa** (OpenStreetMap), carta de **platos típicos** en los restaurantes y un carrusel de lugares relacionados.
+- **Reservas** de alojamiento, mesa o experiencia desde la ficha: el negocio recibe la solicitud y contacta al turista.
+- **Buscador avanzado** con Elasticsearch: texto libre sin importar tildes, autocompletado y **facets** (tipo, municipio, categoría, precio).
+- **Buscador instantáneo** (`Ctrl+K`), **favoritos** guardados en el navegador, compartir y WhatsApp.
+- Diseño de aplicación: portada con vistas que cambian solas, barra inferior en el celular, animaciones suaves.
+
+**Para los negocios y el administrador** ([`docs/AUTENTICACION.md`](docs/AUTENTICACION.md)):
+
+| Rol | Qué maneja |
+|---|---|
+| **Superadministrador** | Todo el catálogo, incluidos los destinos turísticos, y las cuentas de los negocios: crearlas con contraseña temporal, suspenderlas, restablecerlas, asignarles fichas. Ve todas las reservas. |
+| **Negocio** (hotel, restaurante, operador) | Solo sus fichas: las crea, edita, publica u oculta, maneja la carta de su restaurante y atiende la bandeja de **reservas** (confirmar, rechazar, escribir por WhatsApp). |
+
+| Detalle de un lugar | Buscador con facets |
+|---|---|
+| ![Detalle de un restaurante](docs/capturas/detalle-restaurante.jpg) | ![Buscador con facets](docs/capturas/buscador-facets.jpg) |
+
+| Destinos | Agenda de eventos |
+|---|---|
+| ![Destinos](docs/capturas/destinos.jpg) | ![Eventos](docs/capturas/eventos.jpg) |
 
 ## Equipo
 
@@ -30,14 +56,34 @@ Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minu
 - [`docs/SPRINT_PLAN.md`](docs/SPRINT_PLAN.md) — planificación de sprints y asignación de trabajo.
 - [`docs/CLICKUP_SETUP.md`](docs/CLICKUP_SETUP.md) — guía paso a paso para montar el tablero en ClickUp.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — cómo conectar Vercel/Render/Elastic Cloud y despliegues por rama (preview).
-- [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md) — rol de administrador, login con JWT y cómo crear el primer admin.
+- [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md) — roles (superadmin y negocio), login con JWT, permisos por dueño y reservas.
+- [`docs/VIDEOMEMORIA.md`](docs/VIDEOMEMORIA.md) — guion de la videomemoria, con quién presenta cada parte.
 - [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md) — **empieza por aquí**: las dos formas de correr el proyecto (con y sin Docker) y los problemas conocidos.
 - [`docs/GUIA_CRUD_PASO_A_PASO.md`](docs/GUIA_CRUD_PASO_A_PASO.md) — tutorial para implementar el CRUD de un microservicio contra MySQL, de principio a fin.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — flujo de Git, convención de commits y proceso de Pull Request.
 
 ## Arquitectura
 
-- **Front-End:** React (JavaScript ES6+, Bootstrap, React Router, Axios).
+```mermaid
+flowchart LR
+    U["Turista / negocio / admin<br/>(navegador)"] --> FE["Frontend React<br/>Vercel"]
+    FE -->|"/api/*  (JWT si hay sesión)"| GW["API Gateway<br/>Express · Render<br/>login, roles, límite de reservas"]
+    GW -->|"X-Gateway-Secret<br/>X-Usuario-Id / Rol"| D[destinos-service]
+    GW --> A[alojamiento-service]
+    GW --> G[gastronomia-service]
+    GW --> X[experiencias-service]
+    GW --> E[eventos-service]
+    GW --> B[buscador-service]
+    D & A & G & X & E --> DB[("MySQL<br/>TiDB Cloud")]
+    GW -->|usuarios| DB
+    B --> ES[("Elasticsearch<br/>Elastic Cloud")]
+    B -.->|reindexa leyendo sus APIs| D & A & G & X & E
+```
+
+- Todo pasa por el **API Gateway**: el frontend nunca llama a un microservicio directo. El gateway valida el token, revisa la cuenta en cada escritura y le dice al servicio quién pregunta; cada microservicio solo acepta escrituras que traigan el secreto del gateway y aplica los permisos de dueño ([`docs/AUTENTICACION.md`](docs/AUTENTICACION.md)).
+- Cada microservicio es dueño de su parte del catálogo; el buscador no lee la base de los demás, sino sus APIs.
+
+- **Front-End:** React 19 + Vite (JavaScript ES6+, Bootstrap con React Bootstrap, React Router, Axios), más lucide-react, motion, Swiper, react-leaflet, cmdk y sonner para el acabado (ver [`frontend/README.md`](frontend/README.md)).
 - **Back-End:** Node.js + Express, arquitectura de microservicios detrás de un API Gateway.
 - **Microservicios:** `destinos`, `alojamiento`, `gastronomia`, `experiencias`, `eventos`, `buscador`.
 - **Bases de datos:** MySQL (datos estructurados), Elasticsearch (búsqueda full-text, facets, sugerencias).
