@@ -1,6 +1,6 @@
 # Guía de colaboración en equipo
 
-Somos 3 personas trabajando en el mismo repositorio. Estas reglas evitan que nos pisemos el código y mantienen el historial legible para el video/documentación final.
+Somos 3 personas trabajando en el mismo repositorio. Estas reglas evitan que nos pisemos el código y mantienen el historial legible para la documentación y la exposición final.
 
 ## 1. Ramas (Git Flow simplificado)
 

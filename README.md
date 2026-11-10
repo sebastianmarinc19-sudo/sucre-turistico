@@ -57,7 +57,7 @@ Antes de una demo: `node scripts/probar-produccion.js` comprueba todo en ~1 minu
 - [`docs/CLICKUP_SETUP.md`](docs/CLICKUP_SETUP.md) — guía paso a paso para montar el tablero en ClickUp.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — cómo conectar Vercel/Render/Elastic Cloud y despliegues por rama (preview).
 - [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md) — roles (superadmin y negocio), login con JWT, permisos por dueño y reservas.
-- [`docs/VIDEOMEMORIA.md`](docs/VIDEOMEMORIA.md) — guion de la videomemoria, con quién presenta cada parte.
+- [`docs/EXPOSICION.md`](docs/EXPOSICION.md) — guion de la exposición, con quién presenta cada parte y posibles preguntas.
 - [`docs/DESARROLLO_LOCAL.md`](docs/DESARROLLO_LOCAL.md) — **empieza por aquí**: las dos formas de correr el proyecto (con y sin Docker) y los problemas conocidos.
 - [`docs/GUIA_CRUD_PASO_A_PASO.md`](docs/GUIA_CRUD_PASO_A_PASO.md) — tutorial para implementar el CRUD de un microservicio contra MySQL, de principio a fin.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — flujo de Git, convención de commits y proceso de Pull Request.

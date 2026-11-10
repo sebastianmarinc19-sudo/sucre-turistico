@@ -66,6 +66,6 @@ La columna **Épica** sirve para agrupar las tareas equivalentes en ClickUp.
 | 16 | Como equipo, queremos un API Gateway que centralice las rutas hacia los microservicios. | Alta |
 | 17 | Como equipo, queremos contenerizar cada servicio con Docker para desarrollo y despliegue consistentes. | Alta |
 | 18 | Como equipo, queremos desplegar el front-end, back-end, base de datos y buscador en un entorno público. | Alta |
-| 19 | Como equipo, queremos documentación técnica y una videomemoria del proyecto. | Alta |
+| 19 | Como equipo, queremos documentación técnica y una exposición del proyecto. | Alta |
 
 Estas historias son la base para crear las **tareas en ClickUp** (ver [`CLICKUP_SETUP.md`](CLICKUP_SETUP.md)) y para repartir el trabajo en [`SPRINT_PLAN.md`](SPRINT_PLAN.md).

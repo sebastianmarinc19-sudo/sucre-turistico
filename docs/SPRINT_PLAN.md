@@ -42,7 +42,7 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 > Esto suma trabajo a un sprint que ya era el más cargado. Si el calendario aprieta, la salida es recortar el panel a lo mínimo (un formulario de login + una tabla por entidad con crear/editar/borrar), no recortar los facets, que son un criterio completo de la rúbrica.
 
 ## Sprint 4 — Despliegue y cierre
-*Cubre criterio 5 (Despliegue — 20%) y criterio 6 (Documentación y videomemoria — 10%)*
+*Cubre criterio 5 (Despliegue — 20%) y criterio 6 (Documentación y sustentación — 10%)*
 
 | Tarea | Responsable | Servicio |
 |---|---|---|
@@ -52,7 +52,7 @@ Basado en los criterios de la rúbrica (10 pts / 100%). 4 sprints de ~1-2 semana
 | ~~Desplegar Elasticsearch en Elastic Cloud y conectar~~ **hecho** (10 nov 2026, Serverless; la prueba vence ~24 nov) | Sebastián | infra |
 | ~~Pruebas end-to-end en el entorno desplegado~~ **hecho** — `scripts/probar-produccion.js`, 25 pruebas | Todos | — |
 | ~~Documentación técnica final~~ **hecho** — README con capturas y diagrama, `AUTENTICACION.md`, `DEPLOYMENT.md` | Todos (una sección c/u) | docs |
-| Grabar videomemoria (todos deben participar, según rúbrica) — guion en [`VIDEOMEMORIA.md`](VIDEOMEMORIA.md) | Todos | — |
+| Preparar la exposición en vivo (todos deben participar, según rúbrica) — guion en [`EXPOSICION.md`](EXPOSICION.md) | Todos | — |
 
 > **Alcance agregado en el sprint 4:**
 >

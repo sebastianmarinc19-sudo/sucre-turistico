@@ -1,20 +1,20 @@
-# Guion de la videomemoria — Sucre Turístico
+# Guion de la exposición — Sucre Turístico
 
-Duración objetivo: **10 minutos**. La rúbrica pide que **participen los cuatro**: cada uno presenta al menos un bloque con su voz (y, si pueden, con cámara en una esquina).
+Duración objetivo: **10 minutos** más preguntas. La rúbrica pide que **participen los cuatro**: cada uno presenta al menos un bloque.
 
-El reparto es una propuesta según lo que cada uno trabajó en los sprints; cámbienlo si alguien prefiere otra parte. Los textos son una guía para hablar con naturalidad, no para leer palabra por palabra.
+La exposición es **en vivo**, con demostración del sitio en producción. El reparto es una propuesta según lo que cada uno trabajó en los sprints; cámbienlo si alguien prefiere otra parte. Los textos son una guía para hablar con naturalidad, no para leer palabra por palabra.
 
-## Antes de grabar (checklist)
+## Antes de exponer (checklist)
 
-- [ ] **El mismo día, antes de grabar:** `node scripts/probar-produccion.js` → debe decir **25/25**. Además de comprobar, despierta los servidores de Render (si no, la primera página tarda ~30 s en el video).
-- [ ] **Elastic Cloud vigente:** la prueba vence hacia el **24 de noviembre de 2026**. Si graban después, el bloque 4 no funciona: graben antes.
+- [ ] **Unos 10 minutos antes:** `node scripts/probar-produccion.js` → debe decir **25/25**. Además de comprobar, despierta los servidores de Render; si no, la primera página tarda ~30 s frente al docente.
+- [ ] **Elastic Cloud vigente:** la prueba vence hacia el **24 de noviembre de 2026**. Si la exposición es después, el bloque 4 no funciona: avisen para buscar otra opción antes.
 - [ ] **Cuentas de demostración en producción**, creadas desde el panel por el superadmin:
   - un negocio de prueba (ej. "Hotel Mar de Coveñas") con un alojamiento asignado, y sus datos de acceso a mano;
-  - una reserva de prueba hecha antes de grabar, para que la bandeja no salga vacía.
-- [ ] Navegador en **ventana limpia** (sin pestañas ni marcadores personales), zoom al 100 %, pantalla 1920×1080.
-- [ ] Una ventana de **incógnito** para entrar como el negocio sin cerrar la sesión del superadmin.
-- [ ] El diagrama del README abierto en GitHub para el bloque 2.
-- [ ] Grabar con OBS, Zoom o Teams (pantalla compartida). Cada bloque puede grabarse por separado y unirse al final.
+  - una reserva de prueba hecha antes, para que la bandeja no salga vacía.
+- [ ] **Pestañas abiertas en orden:** el sitio, el buscador (`/buscar`), el panel como superadmin, una ventana de **incógnito** para entrar como el negocio, el diagrama del README en GitHub, la pestaña **Actions** y una terminal.
+- [ ] Navegador limpio (sin marcadores ni pestañas personales) y zoom al 110–125 % para que se lea en el proyector.
+- [ ] **Plan B sin internet o si Render no despierta:** las capturas de [`docs/capturas/`](capturas/) y el documento de la entrega final, listos para mostrar.
+- [ ] Ensayar una vez completo, cronometrado, con el cambio de turno entre integrantes.
 
 ## Bloques
 
@@ -37,7 +37,7 @@ El reparto es una propuesta según lo que cada uno trabajó en los sprints; cám
 > "Somos Sebastián, Halit, Jaime y Wilinton, de Electiva Profesional II en la UNIAJS. Les presentamos **Sucre Turístico**, una plataforma web para promocionar y gestionar el turismo del Golfo de Morrosquillo: destinos, alojamiento, gastronomía, experiencias y eventos en un solo lugar.
 > Trabajamos con **Scrum** en cuatro sprints; yo fui el Scrum Master y organizamos las tareas en ClickUp y el código en GitHub, con ramas por funcionalidad y Pull Requests revisados."
 
-**Mostrar 5 s:** el tablero de ClickUp o la lista de Pull Requests en GitHub.
+**Mostrar unos segundos:** el tablero de ClickUp o la lista de Pull Requests en GitHub.
 
 ### 2. Arquitectura (Sebastián · 1:30)
 
@@ -47,7 +47,7 @@ El reparto es una propuesta según lo que cada uno trabajó en los sprints; cám
 > Detrás hay **seis microservicios** en Node.js: destinos, alojamiento, gastronomía, experiencias, eventos y el buscador. Los cinco primeros guardan en **MySQL**; el buscador usa **Elasticsearch**, y se llena leyendo las APIs de los demás, no su base de datos.
 > Cada servicio tiene su **Dockerfile**, y con docker-compose levantamos todo en local con un comando."
 
-**Mostrar 10 s:** la carpeta `services/` en GitHub y el `docker-compose.yml`.
+**Mostrar:** la carpeta `services/` en GitHub y el `docker-compose.yml`.
 
 ### 3. Recorrido del turista (Halit · 2 min)
 
@@ -56,7 +56,7 @@ El reparto es una propuesta según lo que cada uno trabajó en los sprints; cám
 1. **Portada:** "La portada cambia sola entre playas, naturaleza, gastronomía y el próximo evento real, con el clima en vivo de cada municipio."
 2. **Explorar por categoría → Gastronomía:** filtros por tipo de cocina, municipio y precio.
 3. **Abrir un restaurante:** "Cada lugar tiene su página: foto a pantalla completa, la **carta de platos típicos**, el **mapa**, el clima y lugares relacionados." Tocar **Ver foto**.
-4. **Corazón ❤️** en una tarjeta → **Mis favoritos**: "Sin crear cuenta, el turista guarda lo que le interesa."
+4. **Corazón** en una tarjeta → **Mis favoritos**: "Sin crear cuenta, el turista guarda lo que le interesa."
 5. **`Ctrl+K`** y escribir "covenas" (sin tilde): "Un buscador instantáneo que encuentra aunque no pongas tildes."
 6. **Celular** (vista de dispositivo del navegador, F12): la barra inferior tipo app.
 
@@ -93,7 +93,7 @@ El reparto es una propuesta según lo que cada uno trabajó en los sprints; cám
 > "El frontend está en **Vercel**, el gateway y los seis microservicios en **Render**, MySQL en **TiDB Cloud** y Elasticsearch en **Elastic Cloud**. Cada vez que unimos a `main`, todo se vuelve a desplegar solo, y en cada Pull Request **GitHub Actions** corre las pruebas y construye las imágenes Docker."
 
 1. Mostrar la pestaña **Actions** de GitHub con los checks en verde.
-2. En la terminal: `node scripts/probar-produccion.js` → **25/25**.
+2. En la terminal: `node scripts/probar-produccion.js` → **25/25** (si la red es lenta, mostrar la salida que corrieron antes de empezar).
    > "Este script prueba producción de punta a punta: los catálogos, el buscador, y la seguridad."
 3. Señalar en la salida las líneas **"POST directo a … es rechazado — 403"**:
    > "Los microservicios solo aceptan cambios que vengan del gateway, con un secreto compartido; y cada negocio solo puede tocar lo suyo aunque intente saltarse la pantalla."
@@ -107,12 +107,21 @@ Cada uno, una frase sobre lo que más aprendió. Ideas:
 - **Jaime:** desplegar varios servicios en la nube y conectarlos de forma segura.
 - **Wilinton:** modelar roles y permisos reales, como los que necesita un negocio.
 
-> "Gracias. El sitio está en sucre-turistico-frontend.vercel.app y el código en GitHub."
+> "Gracias. El sitio está en sucre-turistico-frontend.vercel.app y el código en GitHub. Quedamos atentos a sus preguntas."
 
 ---
 
-## Después de grabar
+## Preguntas que pueden hacer
 
-- Duración final entre 8 y 12 minutos; cortar silencios y esperas de carga.
-- Subir a YouTube como **no listado** (o a Drive con acceso por enlace) y pegar el enlace en el README y en la entrega.
+| Pregunta | Quién responde | Idea de respuesta |
+|---|---|---|
+| ¿Por qué no hay un servicio de autenticación aparte? | Sebastián | El enunciado fija seis microservicios y centralizar la autenticación es la función del gateway; los servicios no necesitan saber de usuarios. |
+| ¿Qué pasa si alguien llama directo a un microservicio? | Jaime | Las escrituras sin el secreto del gateway reciben 403; lo prueba `probar-produccion.js`. |
+| ¿Por qué el buscador no lee la base de datos? | Jaime | Cada servicio es dueño de sus datos; el buscador los toma de sus APIs públicas. |
+| ¿Cómo se calculan los facets? | Jaime | Agregaciones de Elasticsearch con `post_filter`: cada facet cuenta con todos los filtros menos el suyo. |
+| ¿Cómo evitan que un negocio edite lo de otro? | Wilinton | Doble capa: el gateway exige sesión y cuenta activa; el servicio compara `propietario_id` con la cuenta. |
+| ¿Por qué tarda la primera carga? | Halit | El plan gratuito de Render duerme los servicios; el sitio avisa mientras despiertan. |
+
+## Después de exponer
+
 - Borrar desde el panel la cuenta y la reserva de prueba si no se van a usar más.
