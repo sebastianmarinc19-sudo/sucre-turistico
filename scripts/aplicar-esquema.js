@@ -25,7 +25,9 @@ const DATOS = '04-datos-ejemplo.sql';
 const MAS_DATOS = '05-mas-datos.sql';
 // Migracion de una sola vez (ALTER TABLE): se salta si ya se aplico.
 const ROLES = '06-roles-negocios.sql';
-const TABLAS = ['usuarios', 'municipios', 'destinos', 'alojamientos', 'restaurantes', 'platos', 'experiencias', 'eventos'];
+// Idempotente (CREATE TABLE IF NOT EXISTS): se aplica siempre.
+const RESERVAS = '07-reservas.sql';
+const TABLAS = ['usuarios', 'municipios', 'destinos', 'alojamientos', 'restaurantes', 'platos', 'experiencias', 'eventos', 'reservas'];
 
 const CONFIG = {
   host: process.env.DB_HOST || 'gateway01.us-east-1.prod.aws.tidbcloud.com',
@@ -113,6 +115,7 @@ async function aplicar(conexion, archivo) {
     );
     if (yaTieneRoles > 0) console.log(`Saltando ${ROLES}: ya estaba aplicada.`);
     else await aplicar(conexion, ROLES);
+    await aplicar(conexion, RESERVAS);
 
     console.log('');
     mostrar('Despues:', await contarFilas(conexion));

@@ -42,6 +42,7 @@ before(async () => {
   const quien = (req) => ({ usuario: req.get('x-usuario-id') || null, rol: req.get('x-usuario-rol') || null });
   stub.get('/api/alojamientos', (req, res) => res.json(quien(req)));
   stub.post('/api/alojamientos', (req, res) => res.status(201).json(quien(req)));
+  stub.post('/api/alojamientos/:id/reservas', (req, res) => res.status(201).json({ reserva: true }));
   upstream = await escuchar(stub);
   microservicioUrl = `http://127.0.0.1:${upstream.address().port}`;
 });
@@ -343,6 +344,31 @@ test('el superadmin suspende y reactiva una cuenta, pero no la suya', async (t) 
 
   const negocioIntenta = await enviar(`${url}/api/auth/usuarios`, 'GET', tokenNegocio());
   assert.strictEqual(negocioIntenta.status, 403);
+});
+
+// --- Reservaciones: la unica escritura publica ---
+
+test('el turista pide una reserva sin token, y hay un limite por IP', async (t) => {
+  const { url, server } = await levantarGateway({ usuarios: await adminEnBase() });
+  t.after(() => server.close());
+
+  for (let i = 1; i <= 5; i++) {
+    const res = await enviar(`${url}/api/alojamientos/3/reservas`, 'POST', null, { nombre_cliente: 'Ana' });
+    assert.strictEqual(res.status, 201, `reserva ${i}`);
+  }
+  const sexta = await enviar(`${url}/api/alojamientos/3/reservas`, 'POST', null, { nombre_cliente: 'Ana' });
+  assert.strictEqual(sexta.status, 429);
+});
+
+test('la excepcion de reservas no abre las demas escrituras', async (t) => {
+  const { url, server } = await levantarGateway({ usuarios: await adminEnBase() });
+  t.after(() => server.close());
+
+  // Ni crear un alojamiento, ni rutas parecidas que no son exactamente la de reservas.
+  for (const ruta of ['/api/alojamientos', '/api/alojamientos/3/reservas/9', '/api/destinos/3/reservas']) {
+    const res = await enviar(`${url}${ruta}`, 'POST', null, {});
+    assert.strictEqual(res.status, 401, ruta);
+  }
 });
 
 test('GET /api/auth/yo devuelve los datos del token', async (t) => {

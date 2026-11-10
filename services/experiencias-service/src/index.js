@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const soloGateway = require('./solo-gateway');
 const { usuarioDe, filtroVisibilidad, propietarioAlCrear, exigirPermiso, rutaPublicar } = require('./propiedad');
+const { montarReservas } = require('./reservas');
 const pool = require('./db');
 
 const app = express();
@@ -72,6 +73,9 @@ app.get('/api/experiencias/catalogos/municipios', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Reservaciones (src/reservas.js). Va antes de /api/experiencias/:id: si no, "reservas" se tomaria como un id.
+montarReservas(app, pool, { seccion: 'experiencia', tabla: 'experiencias', ruta: '/api/experiencias' });
 
 app.get('/api/experiencias/:id', async (req, res) => {
   try {
