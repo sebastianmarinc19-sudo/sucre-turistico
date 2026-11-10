@@ -1,6 +1,6 @@
 # Guion de la exposición — Sucre Turístico
 
-**Duración:** 10 minutos más preguntas. **Participan los cuatro** (lo pide la rúbrica).
+**Duración:** unos 11 minutos más preguntas (abajo está cómo recortarla a 10). **Participan los cuatro** (lo pide la rúbrica).
 
 **La idea:** mostrar el sitio **funcionando en vivo** y usar las diapositivas como hilo y como respaldo. Cada diapositiva de demo trae capturas de lo mismo que se muestra en vivo: si internet o Render fallan, se sigue con la diapositiva sin detenerse.
 
