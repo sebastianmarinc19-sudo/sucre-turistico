@@ -3,7 +3,7 @@ import {
   Fan, Info, Lock, Map as IconoMapa, MapPin, Phone, ShowerHead, Snowflake, SquareParking, Star, Tag, Tent,
   TriangleAlert, Users, Utensils, Wallet, Waves, Wifi,
 } from 'lucide-react';
-import { Expand, MessageCircle, Share2 } from 'lucide-react';
+import { CalendarCheck, Expand, MessageCircle, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -11,11 +11,12 @@ import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import api, { mensajeDeError } from '../api/client';
-import { CATALOGO, categoriaDe, etiquetaDe, pesos, RANGOS_PRECIO } from '../catalogo';
+import { CATALOGO, categoriaDe, etiquetaDe, pesos, RANGOS_PRECIO, RESERVABLES } from '../catalogo';
 import BotonFavorito from '../components/BotonFavorito';
 import Carrusel from '../components/Carrusel';
 import { AvisoDespertando } from '../components/Cargando';
 import Clima from '../components/Clima';
+import FormReserva from '../components/FormReserva';
 import MapaMunicipios from '../components/MapaMunicipios';
 import TarjetaDe from '../components/TarjetaDe';
 import { useEsperaLarga } from '../components/useEsperaLarga';
@@ -178,6 +179,7 @@ function Detalle({ seccion }) {
   const [error, setError] = useState(null);
   const [noExiste, setNoExiste] = useState(false);
   const [fotoAbierta, setFotoAbierta] = useState(false);
+  const [reservando, setReservando] = useState(false);
   const cargando = !registro && !error && !noExiste;
   const esperaLarga = useEsperaLarga(cargando);
 
@@ -298,6 +300,14 @@ function Detalle({ seccion }) {
                 </div>
               </dl>
               <Clima municipio={r.municipio} variante="ficha" />
+              {RESERVABLES[seccion] && (
+                <>
+                  <button type="button" className="btn btn-primary w-100 mb-2 st-btn-reservar" onClick={() => setReservando(true)}>
+                    <CalendarCheck size={18} aria-hidden="true" /> {RESERVABLES[seccion].boton}
+                  </button>
+                  <FormReserva seccion={seccion} registro={r} abierto={reservando} onCerrar={() => setReservando(false)} />
+                </>
+              )}
               <a className="btn st-btn-whatsapp w-100 mb-2" href={enlaceWhatsApp(r)} target="_blank" rel="noreferrer">
                 <MessageCircle size={17} aria-hidden="true" /> {celularDe(r.telefono) ? 'Escribir por WhatsApp' : 'Enviar por WhatsApp'}
               </a>
